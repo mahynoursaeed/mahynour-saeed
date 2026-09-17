@@ -212,18 +212,21 @@
           if (isSingleOption) {
             const singleCell = document.createElement('div');
             singleCell.className = 'color-option-cell-single';
-            singleCell.innerText = optionValues[0];
+            
+            const accentBar = document.createElement('span');
+            accentBar.className = 'color-accent-bar';
+            accentBar.style.backgroundColor = getColorHex(optionValues[0]);
+            singleCell.appendChild(accentBar);
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'color-option-text';
+            textSpan.innerText = optionValues[0];
+            singleCell.appendChild(textSpan);
+
             colorTrack.appendChild(singleCell);
             selectedOptions[optName] = optionValues[0];
           } else {
-            // Sliding Pill Element
-            const slidingPill = document.createElement('div');
-            slidingPill.className = 'color-sliding-pill';
-            colorTrack.appendChild(slidingPill);
-
-            const cellElements = [];
-
-            optionValues.forEach((val, index) => {
+            optionValues.forEach((val) => {
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
@@ -238,32 +241,16 @@
               colorOption.appendChild(textSpan);
 
               colorOption.addEventListener('click', function() {
-                cellElements.forEach(c => c.classList.remove('selected'));
+                colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
+                  c.classList.remove('selected');
+                });
                 this.classList.add('selected');
-
-                const trackRect = colorTrack.getBoundingClientRect();
-                const optionRect = this.getBoundingClientRect();
-                
-                const cellWidth = optionRect.width;
-                const cellLeft = optionRect.left - trackRect.left;
-
-                slidingPill.style.width = `${cellWidth}px`;
-                slidingPill.style.transform = `translateX(${cellLeft}px)`;
 
                 selectedOptions[optName] = val;
                 updateVariantSelection();
               });
 
               colorTrack.appendChild(colorOption);
-              cellElements.push(colorOption);
-
-              if (index === 0) {
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    colorOption.click();
-                  });
-                });
-              }
             });
           }
 
@@ -274,7 +261,7 @@
 
           const selectedDiv = document.createElement('div');
           selectedDiv.className = 'dropdown-selected';
-          selectedDiv.innerHTML = `<span>Choose your size</span><span class="dropdown-arrow">&#8250;</span>`;
+          selectedDiv.innerHTML = `<span>Choose your ${optName.toLowerCase()}</span><span class="dropdown-arrow">&#8250;</span>`;
 
           const menuDiv = document.createElement('div');
           menuDiv.className = 'dropdown-menu';
@@ -547,29 +534,17 @@
     display: flex;
   }
 
-  /* Sliding Black Pill Element */
-  .color-sliding-pill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background-color: #000000;
-    z-index: 2;
-    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-    pointer-events: none;
-  }
-
-  /* Single Option Cell */
+  /* Single Option Cell (Matches styling with accent bar and text) */
   .color-option-cell-single {
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding-right: 16px;
-    font-size: 14px;
-    color: #111;
+    justify-content: flex-start;
+    padding-left: 14px;
+    position: relative;
     background: #fff;
+    color: #111;
     box-sizing: border-box;
   }
 
@@ -587,7 +562,6 @@
     background-color: #ffffff;
     color: #111111;
     overflow: hidden;
-    z-index: 1;
     transition: color 0.15s ease;
   }
 
@@ -614,8 +588,9 @@
     position: relative;
   }
 
-  /* Selected State: Text turns white when covered by sliding pill */
+  /* Selected State: Black background with White text */
   .color-option-cell.selected {
+    background-color: #000000 !important;
     color: #ffffff !important;
   }
 
