@@ -140,7 +140,7 @@
         const plainDesc = tempDiv.innerText || tempDiv.textContent || '';
         document.getElementById('modal-target-desc').innerText = plainDesc.length > 110 ? plainDesc.substring(0, 110) + '...' : plainDesc;
 
-        // Image assignment with robust fallbacks
+        // Image assignment
         let rawImg = currentProduct.featured_image || currentProduct.featured_media?.preview_image?.src || (currentProduct.images && currentProduct.images[0]) || '';
         const imgElement = document.getElementById('modal-target-img');
         imgElement.src = getFormattedImageUrl(rawImg);
@@ -204,7 +204,7 @@
             colorTrack.appendChild(singleCell);
             selectedOptions[optName] = optionValues[0];
           } else {
-            optionValues.forEach((val, valIdx) => {
+            optionValues.forEach((val) => {
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
@@ -530,7 +530,7 @@
     box-sizing: border-box;
   }
 
-  /* Multi-Option Cells (Red, Grey, Blue, Black, etc.) */
+  /* Multi-Option Cells Base */
   .color-option-cell {
     flex: 1;
     display: flex;
@@ -541,30 +541,41 @@
     cursor: pointer;
     user-select: none;
     border-right: 1px solid #111;
-    background: #fff;
+    background-color: #fff;
+    transition: background-color 0.2s ease;
   }
 
   .color-option-cell:last-child {
     border-right: none;
   }
 
+  /* Vertical Color Strip */
   .color-accent-bar {
-    width: 3px;
+    width: 4px;
     height: 100%;
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
+    z-index: 2;
   }
 
+  /* Option Label Text */
   .color-option-text {
     font-size: 14px;
     color: #111;
-    margin-left: 4px;
+    margin-left: 6px;
+    z-index: 2;
+    transition: color 0.2s ease;
+  }
+
+  /* Active/Selected State: Black Background Fill & White Text */
+  .color-option-cell.selected {
+    background-color: #000 !important;
   }
 
   .color-option-cell.selected .color-option-text {
-    font-weight: 600;
+    color: #fff !important;
   }
 
   /* Custom Size Dropdown */
