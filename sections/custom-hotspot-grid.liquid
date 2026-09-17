@@ -81,16 +81,16 @@
     let currentProduct = null;
     let selectedOptions = {};
 
-    // Map color option names to HEX values
+    // Map color option names to Hex values
     const colorHexMap = {
-      'blue': '#0F4C81',
       'black': '#000000',
       'white': '#FFFFFF',
-      'red': '#B00020',
-      'green': '#2A9D8F',
       'grey': '#9E9E9E',
       'gray': '#9E9E9E',
+      'red': '#B00020',
+      'blue': '#0F4C81',
       'navy': '#000080',
+      'green': '#2A9D8F',
       'yellow': '#E9C46A',
       'pink': '#F4A261',
       'beige': '#F5F5DC',
@@ -101,6 +101,12 @@
       if (!colorName) return '#000000';
       const normalized = colorName.trim().toLowerCase();
       return colorHexMap[normalized] || normalized;
+    }
+
+    function isLightColor(colorName) {
+      if (!colorName) return false;
+      const norm = colorName.trim().toLowerCase();
+      return norm === 'white' || norm === '#ffffff' || norm === 'beige' || norm === 'yellow';
     }
 
     function getFormattedImageUrl(rawUrl) {
@@ -230,8 +236,16 @@
               colorOption.appendChild(textSpan);
 
               colorOption.addEventListener('click', function() {
-                colorTrack.querySelectorAll('.color-option-cell').forEach(c => c.classList.remove('selected'));
+                colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
+                  c.classList.remove('selected');
+                  c.style.backgroundColor = '#ffffff';
+                  c.querySelector('.color-option-text').style.color = '#111111';
+                });
+
                 this.classList.add('selected');
+                this.style.backgroundColor = getColorHex(val);
+                this.querySelector('.color-option-text').style.color = isLightColor(val) ? '#111111' : '#ffffff';
+
                 selectedOptions[optName] = val;
                 updateVariantSelection();
               });
@@ -242,7 +256,7 @@
             selectedOptions[optName] = optionValues[0];
             const firstCell = colorTrack.querySelectorAll('.color-option-cell')[0];
             if (firstCell) {
-              firstCell.classList.add('selected');
+              firstCell.click();
             }
           }
 
@@ -526,7 +540,7 @@
     display: flex;
   }
 
-  /* Single Option Cell (White Box) */
+  /* Single Option Cell */
   .color-option-cell-single {
     width: 100%;
     height: 100%;
@@ -540,7 +554,7 @@
     box-sizing: border-box;
   }
 
-  /* Multi-Option Cells Base */
+  /* Multi-Option Cell */
   .color-option-cell {
     flex: 1;
     display: flex;
@@ -552,14 +566,14 @@
     user-select: none;
     border-right: 1px solid #111;
     background-color: #fff;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .color-option-cell:last-child {
     border-right: none;
   }
 
-  /* Vertical Color Strip (Always on the left edge of each cell) */
+  /* Vertical Color Strip */
   .color-accent-bar {
     width: 4px;
     height: 100%;
@@ -570,22 +584,12 @@
     z-index: 2;
   }
 
-  /* Option Label Text */
   .color-option-text {
     font-size: 14px;
     color: #111;
     margin-left: 6px;
     z-index: 2;
     transition: color 0.2s ease;
-  }
-
-  /* Selected Option State: Fill background with black and convert text to white */
-  .color-option-cell.selected {
-    background-color: #000 !important;
-  }
-
-  .color-option-cell.selected .color-option-text {
-    color: #fff !important;
   }
 
   /* Custom Size Dropdown */
