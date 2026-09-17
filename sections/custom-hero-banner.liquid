@@ -24,12 +24,9 @@
   </div>
 
   <!-- LOWER BANNER WITH OVERLAY TEXT -->
-  <div class="hero-lower-wrapper">
-    <div class="hero-bg-illustration">
-      <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager">
-    </div>
-
-    <div class="hero-text-overlay">
+  <div class="hero-lower-banner">
+    <!-- Left Area: Clean Content Area -->
+    <div class="hero-left-area">
       <h1 class="hero-heading">{{ section.settings.heading }}</h1>
       <p class="hero-subtext">{{ section.settings.description }}</p>
       <a href="{{ section.settings.cta_button_link }}" class="main-cta-btn">
@@ -37,9 +34,14 @@
         <span class="btn-arrow">&rarr;</span>
       </a>
     </div>
+
+    <!-- Right Area: SVG Illustration -->
+    <div class="hero-right-area">
+      <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager" width="100%" height="100%">
+    </div>
   </div>
 
-  <!-- BOTTOM TICKER -->
+  <!-- Bottom Ticker -->
   {% if section.settings.footer_ticker_text != blank %}
     <div class="hero-bottom-ticker">
       <span>{{ section.settings.footer_ticker_text }}</span>
