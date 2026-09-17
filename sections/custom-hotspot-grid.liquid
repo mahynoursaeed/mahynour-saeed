@@ -216,13 +216,16 @@
             colorTrack.appendChild(singleCell);
             selectedOptions[optName] = optionValues[0];
           } else {
-            optionValues.forEach((val) => {
+            // Create the sliding pill element inside the track
+            const slidingPill = document.createElement('div');
+            slidingPill.className = 'color-sliding-pill';
+            colorTrack.appendChild(slidingPill);
+
+            const cellElements = [];
+
+            optionValues.forEach((val, index) => {
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
-
-              const slideBg = document.createElement('span');
-              slideBg.className = 'color-slide-bg';
-              colorOption.appendChild(slideBg);
 
               const accentBar = document.createElement('span');
               accentBar.className = 'color-accent-bar';
@@ -235,19 +238,30 @@
               colorOption.appendChild(textSpan);
 
               colorOption.addEventListener('click', function() {
-                // Clear selection state from all options
-                colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
-                  c.classList.remove('selected');
-                });
-
-                // Apply selected state to trigger sliding black fill
+                cellElements.forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
+
+                // Position and size the sliding pill dynamically
+                const trackWidth = colorTrack.offsetWidth;
+                const cellWidth = this.offsetWidth;
+                const cellLeft = this.offsetLeft;
+
+                slidingPill.style.width = `${cellWidth}px`;
+                slidingPill.style.transform = `translateX(${cellLeft}px)`;
 
                 selectedOptions[optName] = val;
                 updateVariantSelection();
               });
 
               colorTrack.appendChild(colorOption);
+              cellElements.push(colorOption);
+
+              // Auto-select the first color option initially
+              if (index === 0) {
+                setTimeout(() => {
+                  colorOption.click();
+                }, 50);
+              }
             });
           }
 
@@ -545,7 +559,19 @@
     box-sizing: border-box;
   }
 
-  /* Base Unselected Color Cell */
+  /* Sliding Black Pill Element */
+  .color-sliding-pill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: #000000;
+    z-index: 2;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    pointer-events: none;
+  }
+
+  /* Base Color Cell */
   .color-option-cell {
     flex: 1;
     display: flex;
@@ -567,20 +593,6 @@
     border-right: none;
   }
 
-  /* Sliding Black Background Overlay Element */
-  .color-slide-bg {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000000;
-    z-index: 2;
-    transform: translateX(-101%);
-    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
-
   /* Vertical Accent Color Strip */
   .color-accent-bar {
     width: 4px;
@@ -600,13 +612,9 @@
     position: relative;
   }
 
-  /* Selected State: Slides the black overlay in & switches text color */
+  /* Selected Text Color Transition */
   .color-option-cell.selected {
     color: #ffffff !important;
-  }
-
-  .color-option-cell.selected .color-slide-bg {
-    transform: translateX(0);
   }
 
   /* Custom Size Dropdown */
