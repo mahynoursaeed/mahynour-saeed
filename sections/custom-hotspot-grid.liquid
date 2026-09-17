@@ -236,7 +236,6 @@
               textSpan.innerText = val;
               colorOption.appendChild(textSpan);
 
-              // Auto-select the first color option by default
               if (valIdx === 0) {
                 colorOption.classList.add('selected');
                 selectedOptions[optName] = val;
@@ -515,7 +514,7 @@
     margin-bottom: 6px;
   }
 
-  /* Color Track Container */
+  /* Color Track Container with Smooth Figma-like Animation */
   .color-picker-track {
     position: relative;
     border: 0.5px solid #000000;
@@ -555,7 +554,7 @@
     background-color: #ffffff;
     color: #000000;
     overflow: hidden;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: flex 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.25s ease, color 0.25s ease;
   }
 
   .color-option-cell:last-child {
@@ -570,6 +569,7 @@
     top: 0;
     bottom: 0;
     z-index: 3;
+    transition: opacity 0.2s ease;
   }
 
   .color-option-text {
@@ -585,8 +585,13 @@
   }
 
   .color-option-cell.selected {
+    flex: 2;
     background-color: #000000 !important;
     color: #ffffff !important;
+  }
+
+  .color-option-cell.selected .color-accent-bar {
+    opacity: 0;
   }
 
   /* Custom Size Dropdown matching your specific component specifications */
@@ -613,7 +618,6 @@
     letter-spacing: -0.02em;
   }
 
-  /* Center text precisely when an item is chosen or default */
   .dropdown-selected span:first-child {
     flex-grow: 1;
     text-align: center;
