@@ -19,7 +19,7 @@
         {% elsif block.settings.custom_image != blank %}
           <img 
             src="{{ block.settings.custom_image | image_url: width: 800 }}" 
-            alt="{{ product.title | escape }}" 
+            alt="{{ section.settings.section_title | escape }}" 
             width="{{ block.settings.custom_image.width }}" 
             height="{{ block.settings.custom_image.height }}" 
             loading="lazy" 
@@ -34,7 +34,7 @@
             type="button"
             class="hotspot-pin" 
             style="top: {{ block.settings.hotspot_y }}%; left: {{ block.settings.hotspot_x }}%;"
-            data-product-json='{{ product | json | escape }}'
+            data-product='{{ product | json | escape }}'
             aria-label="View {{ product.title | escape }}"
           >
             +
@@ -56,10 +56,8 @@
         <p id="modal-target-price" class="modal-price"></p>
         <div id="modal-target-desc" class="modal-desc"></div>
 
-        <!-- Options Container Rendered via JS -->
         <div id="modal-options-container"></div>
 
-        <!-- Add To Cart Form -->
         <form id="hotspot-add-to-cart-form">
           <input type="hidden" id="modal-selected-variant-id" name="id" value="">
           <button type="submit" id="modal-atc-submit" class="modal-atc-btn">
@@ -80,21 +78,35 @@
     let currentProduct = null;
     let selectedOptions = {};
 
-    // Open Modal and Populate Data
     document.querySelectorAll('.hotspot-pin').forEach(pin => {
       pin.addEventListener('click', function() {
-        currentProduct = JSON.parse(this.getAttribute('data-product-json'));
+        const rawData = this.getAttribute('data-product');
+        if (!rawData) return;
+
+        try {
+          currentProduct = JSON.parse(rawData);
+        } catch(e) {
+          console.error("JSON parse failed", e);
+          return;
+        }
+
         selectedOptions = {};
 
-        document.getElementById('modal-target-title').innerText = currentProduct.title;
-        document.getElementById('modal-target-price').innerText = (currentProduct.price / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-        
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = currentProduct.description;
-        document.getElementById('modal-target-desc').innerText = tempDiv.innerText || tempDiv.textContent;
+        // Title
+        document.getElementById('modal-target-title').innerText = currentProduct.title || '';
 
+        // Price
+        const priceInUnits = (currentProduct.price / 100).toFixed(2);
+        document.getElementById('modal-target-price').innerText = `$${priceInUnits}`;
+
+        // Description
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = currentProduct.description || '';
+        document.getElementById('modal-target-desc').innerText = tempDiv.innerText || tempDiv.textContent || '';
+
+        // Image
         const imgUrl = currentProduct.featured_image || (currentProduct.images && currentProduct.images[0]);
-        document.getElementById('modal-target-img').src = imgUrl;
+        document.getElementById('modal-target-img').src = imgUrl || '';
 
         renderProductOptions(currentProduct);
         overlay.classList.add('active');
@@ -102,7 +114,6 @@
       });
     });
 
-    // Close Modal Events
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', function(e) {
       if (e.target === overlay) closeModal();
@@ -113,32 +124,34 @@
       overlay.setAttribute('aria-hidden', 'true');
     }
 
-    // Dynamic Option and Variant Builder
     function renderProductOptions(product) {
       const container = document.getElementById('modal-options-container');
       container.innerHTML = '';
 
-      if (!product.options || product.options.length === 0 || (product.options.length === 1 && product.options[0].name === 'Title')) {
-        document.getElementById('modal-selected-variant-id').value = product.variants[0].id;
+      if (!product.options || product.options.length === 0 || (product.options.length === 1 && product.options[0] === 'Title')) {
+        if (product.variants && product.variants.length > 0) {
+          document.getElementById('modal-selected-variant-id').value = product.variants[0].id;
+        }
         return;
       }
 
-      product.options.forEach((option) => {
+      product.options.forEach((optName, idx) => {
         const optionWrapper = document.createElement('div');
         optionWrapper.className = 'modal-option-group';
 
         const label = document.createElement('label');
         label.className = 'option-label';
-        label.innerText = option.name;
+        label.innerText = optName;
         optionWrapper.appendChild(label);
 
-        selectedOptions[option.name] = option.values[0];
+        const optionValues = [...new Set(product.variants.map(v => v.options[idx]))];
+        selectedOptions[optName] = optionValues[0];
 
-        if (option.name.toLowerCase() === 'color' || option.name.toLowerCase() === 'colour') {
+        if (optName.toLowerCase() === 'color' || optName.toLowerCase() === 'colour') {
           const colorGroup = document.createElement('div');
           colorGroup.className = 'color-options';
           
-          option.values.forEach((val, valIndex) => {
+          optionValues.forEach((val, valIndex) => {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = `color-btn ${valIndex === 0 ? 'active' : ''}`;
@@ -146,33 +159,53 @@
             btn.addEventListener('click', function() {
               colorGroup.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
               this.classList.add('active');
-              selectedOptions[option.name] = val;
+              selectedOptions[optName] = val;
               updateVariantSelection();
             });
             colorGroup.appendChild(btn);
           });
           optionWrapper.appendChild(colorGroup);
         } else {
-          const selectWrapper = document.createElement('div');
-          selectWrapper.className = 'select-wrapper';
-          
-          const select = document.createElement('select');
-          select.className = 'size-select';
+          // Custom Dropdown UI
+          const customDropdown = document.createElement('div');
+          customDropdown.className = 'custom-dropdown';
 
-          option.values.forEach(val => {
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.innerText = val;
-            select.appendChild(opt);
+          const selectedDiv = document.createElement('div');
+          selectedDiv.className = 'dropdown-selected';
+          selectedDiv.innerHTML = `<span>Choose your size</span><span class="dropdown-arrow">▼</span>`;
+
+          const menuDiv = document.createElement('div');
+          menuDiv.className = 'dropdown-menu';
+
+          optionValues.forEach((val) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'dropdown-item';
+            itemDiv.innerText = val;
+
+            itemDiv.addEventListener('click', function() {
+              menuDiv.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('selected'));
+              this.classList.add('selected');
+              selectedDiv.querySelector('span').innerText = val;
+              selectedOptions[optName] = val;
+              customDropdown.classList.remove('open');
+              updateVariantSelection();
+            });
+
+            menuDiv.appendChild(itemDiv);
           });
 
-          select.addEventListener('change', function() {
-            selectedOptions[option.name] = this.value;
-            updateVariantSelection();
+          selectedDiv.addEventListener('click', function(e) {
+            e.stopPropagation();
+            customDropdown.classList.toggle('open');
           });
 
-          selectWrapper.appendChild(select);
-          optionWrapper.appendChild(selectWrapper);
+          document.addEventListener('click', function() {
+            customDropdown.classList.remove('open');
+          });
+
+          customDropdown.appendChild(selectedDiv);
+          customDropdown.appendChild(menuDiv);
+          optionWrapper.appendChild(customDropdown);
         }
 
         container.appendChild(optionWrapper);
@@ -181,11 +214,10 @@
       updateVariantSelection();
     }
 
-    // Variant Matching Logic
     function updateVariantSelection() {
       const matchedVariant = currentProduct.variants.find(variant => {
-        return currentProduct.options.every((opt, idx) => {
-          return variant.options[idx] === selectedOptions[opt.name];
+        return currentProduct.options.every((optName, idx) => {
+          return variant.options[idx] === selectedOptions[optName];
         });
       });
 
@@ -201,7 +233,7 @@
       }
     }
 
-    // AJAX Add to Cart & Automatic Soft Winter Jacket Addition
+    // AJAX Cart Submit with Bonus Soft Winter Jacket check
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
       const variantId = document.getElementById('modal-selected-variant-id').value;
@@ -209,7 +241,6 @@
 
       const itemsToAdd = [{ id: parseInt(variantId), quantity: 1 }];
 
-      // Bonus rule verification: check for Black & Medium options
       const optionValues = Object.values(selectedOptions).map(v => String(v).toLowerCase());
       const isBlackAndMedium = optionValues.includes('black') && (optionValues.includes('medium') || optionValues.includes('m'));
 
@@ -223,11 +254,10 @@
             itemsToAdd.push({ id: jacketProduct.variants[0].id, quantity: 1 });
           }
         } catch (err) {
-          console.error('Failed to add bonus item:', err);
+          console.error('Failed to query bonus jacket:', err);
         }
       }
 
-      // Execute Cart API Request
       fetch('{{ routes.cart_add_url }}.js', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -248,7 +278,6 @@
     padding: 60px 5%;
     max-width: 1200px;
     margin: 0 auto;
-    font-family: inherit;
   }
 
   .grid-title {
@@ -296,11 +325,6 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    transition: transform 0.2s ease;
-  }
-
-  .hotspot-pin:hover {
-    transform: translate(-50%, -50%) scale(1.15);
   }
 
   .modal-overlay {
@@ -327,10 +351,9 @@
   .modal-box {
     background: #fff;
     padding: 32px 24px 24px;
-    max-width: 480px;
+    max-width: 440px;
     width: 90%;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   }
 
   .modal-close-btn {
@@ -341,14 +364,12 @@
     border: none;
     font-size: 20px;
     cursor: pointer;
-    color: #333;
   }
 
   .modal-content {
     display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 20px;
-    align-items: start;
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
   }
 
   @media (max-width: 480px) {
@@ -368,13 +389,10 @@
     font-size: 15px;
     font-weight: 500;
     margin: 0 0 6px;
-    color: #111;
   }
 
   .modal-price {
     font-size: 14px;
-    font-weight: 400;
-    color: #444;
     margin: 0 0 10px;
   }
 
@@ -398,50 +416,88 @@
 
   .color-options {
     display: flex;
+    width: 100%;
     border: 1px solid #000;
+    box-sizing: border-box;
   }
 
   .color-btn {
     flex: 1;
-    padding: 6px 0;
-    background: #fff;
+    padding: 8px 0;
+    background: #ffffff;
+    color: #000000;
     border: none;
-    font-size: 12px;
+    font-size: 13px;
     cursor: pointer;
     text-align: center;
-    transition: background 0.2s, color 0.2s;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .color-btn.active {
-    background: #000;
-    color: #fff;
+    background: #000000;
+    color: #ffffff;
   }
 
-  .select-wrapper {
+  .custom-dropdown {
     position: relative;
-  }
-
-  .size-select {
     width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    background: #fff;
-    font-size: 12px;
-    color: #333;
-    appearance: none;
-    border-radius: 0;
-    cursor: pointer;
   }
 
-  .select-wrapper::after {
-    content: "∨";
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+  .dropdown-selected {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #000;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .dropdown-arrow {
     font-size: 10px;
-    pointer-events: none;
-    color: #555;
+    transition: transform 0.2s ease;
+  }
+
+  .custom-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #000;
+    border-top: none;
+    z-index: 10;
+    box-sizing: border-box;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .custom-dropdown.open .dropdown-menu {
+    display: block;
+  }
+
+  .dropdown-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .dropdown-item:hover {
+    background: #f0f0f0;
+  }
+
+  .dropdown-item.selected {
+    background: #000000;
+    color: #ffffff;
   }
 
   .modal-atc-btn {
@@ -453,11 +509,9 @@
     border: none;
     font-size: 12px;
     font-weight: 600;
-    letter-spacing: 1px;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
-    align-items: center;
   }
 
   .modal-atc-btn:disabled {
