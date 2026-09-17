@@ -50,10 +50,10 @@
   <div class="modal-box">
     <button type="button" id="modal-close-trigger" class="modal-close-btn" aria-label="Close modal">&times;</button>
     
-    <!-- Header Row: Thumbnail Image + Product Details -->
+    <!-- Thumbnail & Product Info -->
     <div class="modal-header-grid">
       <div class="modal-img-wrapper">
-        <img id="modal-target-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="modal-img">
+        <img id="modal-target-img" src="" alt="Product Image" class="modal-img">
       </div>
       <div class="modal-info-header">
         <h3 id="modal-target-title" class="modal-title">Loading...</h3>
@@ -62,7 +62,7 @@
       </div>
     </div>
 
-    <!-- Options & Purchase Form -->
+    <!-- Options Container -->
     <div id="modal-options-container"></div>
 
     <form id="hotspot-add-to-cart-form">
@@ -83,16 +83,33 @@
     let currentProduct = null;
     let selectedOptions = {};
 
+    const colorHexMap = {
+      'blue': '#0F4C81',
+      'black': '#000000',
+      'white': '#FFFFFF',
+      'red': '#D62828',
+      'green': '#2A9D8F',
+      'grey': '#888888',
+      'gray': '#888888'
+    };
+
+    // Helper to format image URLs from Shopify API JSON
+    function getFormattedImageUrl(rawUrl) {
+      if (!rawUrl) return 'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image-1.png';
+      if (rawUrl.startsWith('//')) return 'https:' + rawUrl;
+      if (rawUrl.startsWith('/')) return window.location.origin + rawUrl;
+      return rawUrl;
+    }
+
     document.querySelectorAll('.hotspot-pin').forEach(pin => {
       pin.addEventListener('click', async function() {
         const handle = this.getAttribute('data-handle');
         if (!handle) return;
 
-        // Reset Modal Visual State
         document.getElementById('modal-target-title').innerText = 'Loading...';
         document.getElementById('modal-target-price').innerText = '';
         document.getElementById('modal-target-desc').innerText = '';
-        document.getElementById('modal-target-img').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        document.getElementById('modal-target-img').src = '';
         document.getElementById('modal-options-container').innerHTML = '';
 
         overlay.classList.add('active');
@@ -111,26 +128,26 @@
 
         selectedOptions = {};
 
-        // Title
+        // Product Information Assignment
         document.getElementById('modal-target-title').innerText = currentProduct.title || '';
 
-        // Price Formatting
         const priceVal = currentProduct.price || (currentProduct.variants && currentProduct.variants[0] ? currentProduct.variants[0].price : 0);
-        const priceInUnits = (priceVal / 100).toFixed(2).replace('.', ',');
-        document.getElementById('modal-target-price').innerText = `${priceInUnits}€`;
+        document.getElementById('modal-target-price').innerText = `${(priceVal / 100).toFixed(2).replace('.', ',')}€`;
 
-        // Description Sanitization
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = currentProduct.description || '';
         const plainDesc = tempDiv.innerText || tempDiv.textContent || '';
-        document.getElementById('modal-target-desc').innerText = plainDesc.length > 120 ? plainDesc.substring(0, 120) + '...' : plainDesc;
+        document.getElementById('modal-target-desc').innerText = plainDesc.length > 110 ? plainDesc.substring(0, 110) + '...' : plainDesc;
 
-        // Ensure Image URL Protocol resolution
-        let rawImg = currentProduct.featured_image || (currentProduct.images && currentProduct.images[0]) || '';
-        if (rawImg.startsWith('//')) {
-          rawImg = 'https:' + rawImg;
+        // Image Extraction with Multiple Fallbacks
+        let rawImg = currentProduct.featured_image || currentProduct.featured_media?.preview_image?.src || (currentProduct.images && currentProduct.images[0]) || '';
+        if (typeof rawImg === 'object' && rawImg !== null) {
+          rawImg = rawImg.src || '';
         }
-        document.getElementById('modal-target-img').src = rawImg;
+
+        const imgElement = document.getElementById('modal-target-img');
+        imgElement.src = getFormattedImageUrl(rawImg);
+        imgElement.alt = currentProduct.title || 'Product Image';
 
         renderProductOptions(currentProduct);
       });
@@ -157,7 +174,6 @@
         return;
       }
 
-      // Ensure Color option appears above Size
       const sortedOptions = [...product.options].sort((a, b) => {
         const nameA = (typeof a === 'string' ? a : a.name).toLowerCase();
         const nameB = (typeof b === 'string' ? b : b.name).toLowerCase();
@@ -179,48 +195,68 @@
         label.innerText = optName;
         optionWrapper.appendChild(label);
 
-        selectedOptions[optName] = optionValues[0];
-
         if (optName.toLowerCase() === 'color' || optName.toLowerCase() === 'colour') {
-          const colorContainer = document.createElement('div');
-          colorContainer.className = 'color-picker-container';
+          const isSingleOption = optionValues.length === 1;
+          const colorTrack = document.createElement('div');
+          colorTrack.className = `color-picker-track ${isSingleOption ? 'single-option' : 'multi-option'}`;
 
-          // Sliding Accent Bar Element
-          const activeIndicator = document.createElement('div');
-          activeIndicator.className = 'color-active-bar';
-          colorContainer.appendChild(activeIndicator);
+          if (isSingleOption) {
+            // Single option layout: Right-aligned text, white background, no black background movement
+            const singleCell = document.createElement('div');
+            singleCell.className = 'color-option-cell-single';
+            singleCell.innerText = optionValues[0];
+            colorTrack.appendChild(singleCell);
+            selectedOptions[optName] = optionValues[0];
+          } else {
+            // Multi-option layout: Horizontal sliding black block + left edge vertical accent
+            const slidingBg = document.createElement('div');
+            slidingBg.className = 'color-sliding-bg';
+            colorTrack.appendChild(slidingBg);
 
-          const totalBtns = optionValues.length;
-          const btnElements = [];
+            const totalOptions = optionValues.length;
+            slidingBg.style.width = `${100 / totalOptions}%`;
 
-          optionValues.forEach((val, valIndex) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = `color-select-btn ${valIndex === 0 ? 'selected' : ''}`;
-            btn.innerText = val;
+            optionValues.forEach((val, valIdx) => {
+              const colorOption = document.createElement('div');
+              colorOption.className = 'color-option-cell';
 
-            btn.addEventListener('click', function() {
-              colorContainer.querySelectorAll('.color-select-btn').forEach(b => b.classList.remove('selected'));
-              this.classList.add('selected');
-              selectedOptions[optName] = val;
+              const accentBar = document.createElement('span');
+              accentBar.className = 'color-accent-bar';
+              const normalizedColor = val.trim().toLowerCase();
+              accentBar.style.backgroundColor = colorHexMap[normalizedColor] || normalizedColor;
+              colorOption.appendChild(accentBar);
 
-              // Animate Indicator Bar Horizontally
-              const stepPercent = 100 / totalBtns;
-              activeIndicator.style.transform = `translateX(${valIndex * 100}%)`;
+              const textSpan = document.createElement('span');
+              textSpan.className = 'color-option-text';
+              textSpan.innerText = val;
+              colorOption.appendChild(textSpan);
 
-              updateVariantSelection();
+              colorOption.addEventListener('click', function() {
+                colorTrack.querySelectorAll('.color-option-cell').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedOptions[optName] = val;
+
+                slidingBg.style.transform = `translateX(${valIdx * 100}%)`;
+                slidingBg.style.opacity = '1';
+
+                updateVariantSelection();
+              });
+
+              colorTrack.appendChild(colorOption);
             });
 
-            btnElements.push(btn);
-            colorContainer.appendChild(btn);
-          });
+            selectedOptions[optName] = optionValues[0];
+            const firstCell = colorTrack.querySelectorAll('.color-option-cell')[0];
+            if (firstCell) {
+              firstCell.classList.add('selected');
+              slidingBg.style.transform = 'translateX(0%)';
+              slidingBg.style.opacity = '1';
+            }
+          }
 
-          // Set Width for Sliding Bar
-          activeIndicator.style.width = `${100 / totalBtns}%`;
-
-          optionWrapper.appendChild(colorContainer);
+          optionWrapper.appendChild(colorTrack);
         } else {
-          // Custom Dropdown Box
+          // Custom Dropdown Box for Sizes
           const customDropdown = document.createElement('div');
           customDropdown.className = 'custom-dropdown';
 
@@ -386,7 +422,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   }
 
-  /* Modal Base */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -429,7 +464,6 @@
     color: #111;
   }
 
-  /* Header Layout Grid */
   .modal-header-grid {
     display: grid;
     grid-template-columns: 110px 1fr;
@@ -477,7 +511,6 @@
     margin: 0;
   }
 
-  /* Option Wrapper */
   .modal-option-group {
     margin-bottom: 16px;
   }
@@ -489,45 +522,85 @@
     margin-bottom: 6px;
   }
 
-  /* Horizontal Sliding Color Control */
-  .color-picker-container {
+  /* Color Switcher Container */
+  .color-picker-track {
     position: relative;
-    display: flex;
     border: 1px solid #111;
     background: #fff;
     box-sizing: border-box;
     overflow: hidden;
+    height: 42px;
   }
 
-  .color-select-btn {
-    flex: 1;
-    padding: 10px 0;
-    background: transparent;
+  .color-picker-track.multi-option {
+    display: flex;
+  }
+
+  /* Single Color Option */
+  .color-option-cell-single {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 16px;
+    font-size: 14px;
     color: #111;
-    border: none;
-    font-size: 13px;
-    cursor: pointer;
-    text-align: center;
-    position: relative;
-    z-index: 2;
-    transition: color 0.2s ease;
+    background: #fff;
+    box-sizing: border-box;
   }
 
-  .color-active-bar {
+  /* Multi Color Options & Background Slider */
+  .color-sliding-bg {
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
-    background: #111;
+    background: #000;
     z-index: 1;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
   }
 
-  .color-select-btn.selected {
+  .color-option-cell {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 12px;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    user-select: none;
+    border-right: 1px solid #111;
+  }
+
+  .color-option-cell:last-child {
+    border-right: none;
+  }
+
+  .color-accent-bar {
+    width: 4px;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 3;
+  }
+
+  .color-option-text {
+    font-size: 13px;
+    color: #111;
+    margin-left: 6px;
+    transition: color 0.2s ease;
+  }
+
+  .color-option-cell.selected .color-option-text {
     color: #fff;
   }
 
-  /* Size Custom Dropdown Overlay */
+  /* Custom Size Dropdown */
   .custom-dropdown {
     position: relative;
     width: 100%;
@@ -577,7 +650,6 @@
     display: block;
   }
 
-  /* Hover with Black background and White text */
   .dropdown-item {
     padding: 10px 14px;
     font-size: 13px;
@@ -593,7 +665,7 @@
     color: #fff !important;
   }
 
-  /* Action Button */
+  /* ATC Button */
   .modal-atc-btn {
     width: 100%;
     margin-top: 8px;
