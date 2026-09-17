@@ -220,7 +220,6 @@
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
-              // Always use the option value directly for its own accent strip color
               const accentBar = document.createElement('span');
               accentBar.className = 'color-accent-bar';
               accentBar.style.backgroundColor = getColorHex(val);
@@ -232,12 +231,12 @@
               colorOption.appendChild(textSpan);
 
               colorOption.addEventListener('click', function() {
-                // Reset all options to unselected state
+                // Clear selection state from all options
                 colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
                   c.classList.remove('selected');
                 });
 
-                // Apply selected state (black background via CSS class)
+                // Apply selected state to clicked cell (turns background black)
                 this.classList.add('selected');
 
                 selectedOptions[optName] = val;
@@ -247,11 +246,7 @@
               colorTrack.appendChild(colorOption);
             });
 
-            selectedOptions[optName] = optionValues[0];
-            const firstCell = colorTrack.querySelectorAll('.color-option-cell')[0];
-            if (firstCell) {
-              firstCell.click();
-            }
+            // Do NOT auto-click the first cell anymore, keeping them unselected (white) initially
           }
 
           optionWrapper.appendChild(colorTrack);
