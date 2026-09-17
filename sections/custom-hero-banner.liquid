@@ -1,33 +1,35 @@
 <div class="custom-hero-container">
 
-  <!-- TOP HEADER SECTION -->
-  <div class="hero-top-wrapper">
-    <div class="hero-top-svg">
-      <img src="{{ 'hero-banner1-bg.svg' | asset_url }}" alt="" loading="eager" width="100%" height="100%">
+  <!-- TOP HEADER BAR (Clean, solid bar) -->
+  <header class="hero-top-header">
+    <div class="hero-brand">
+      <a href="/" class="brand-link">{{ section.settings.brand_name }}</a>
     </div>
 
-    <header class="hero-top-header">
-      <div class="hero-brand">
-        <a href="/" class="brand-link">{{ section.settings.brand_name }}</a>
-      </div>
+    <div class="hero-announcement">
+      <span>{{ section.settings.announcement_text }}</span>
+    </div>
 
-      <div class="hero-announcement">
-        <span>{{ section.settings.announcement_text }}</span>
-      </div>
+    <div class="hero-action">
+      <a href="{{ section.settings.top_button_link }}" class="yellow-cta-btn">
+        <span>{{ section.settings.top_button_text }}</span>
+        <span class="btn-arrow">&rarr;</span>
+      </a>
+    </div>
+  </header>
 
-      <div class="hero-action">
-        <a href="{{ section.settings.top_button_link }}" class="yellow-cta-btn">
-          <span>{{ section.settings.top_button_text }}</span>
-          <span class="btn-arrow">&rarr;</span>
-        </a>
-      </div>
-    </header>
+  <!-- TOP LINE-ART BANNER (Directly below header) -->
+  <div class="hero-top-illustration">
+    <img src="{{ 'hero-banner1-bg.svg' | asset_url }}" alt="" loading="eager">
   </div>
 
-  <!-- LOWER MAIN SECTION -->
-  <div class="hero-lower-banner">
-    <!-- Left Area: Clean Content Area -->
-    <div class="hero-left-area">
+  <!-- LOWER BANNER WITH OVERLAY TEXT -->
+  <div class="hero-lower-wrapper">
+    <div class="hero-bg-illustration">
+      <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager">
+    </div>
+
+    <div class="hero-text-overlay">
       <h1 class="hero-heading">{{ section.settings.heading }}</h1>
       <p class="hero-subtext">{{ section.settings.description }}</p>
       <a href="{{ section.settings.cta_button_link }}" class="main-cta-btn">
@@ -35,14 +37,9 @@
         <span class="btn-arrow">&rarr;</span>
       </a>
     </div>
-
-    <!-- Right Area: SVG Illustration -->
-    <div class="hero-right-area">
-      <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager" width="100%" height="100%">
-    </div>
   </div>
 
-  <!-- Bottom Ticker -->
+  <!-- BOTTOM TICKER -->
   {% if section.settings.footer_ticker_text != blank %}
     <div class="hero-bottom-ticker">
       <span>{{ section.settings.footer_ticker_text }}</span>
@@ -66,169 +63,132 @@
   }
 
   /* --------------------------------------
-     TOP SECTION
+     TOP HEADER (Solid White/Gray Bar)
   -------------------------------------- */
-  .hero-top-wrapper {
-    position: relative;
-    width: 100%;
-    height: 380px;
-    background-color: #F5F5F5;
-    box-sizing: border-box;
-  }
-
-  .hero-top-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .hero-top-svg img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center top;
-    display: block;
-  }
-
   .hero-top-header {
-    position: relative;
-    z-index: 2;
     width: 100%;
-    height: 64px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 67px;
+    padding: 0 40px;
     box-sizing: border-box;
+    background-color: #F7F7F7;
+    position: relative;
+    z-index: 10;
   }
 
   .brand-link {
     font-size: 18px;
     font-weight: 800;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     color: #000000;
     text-decoration: none;
     text-transform: uppercase;
   }
 
   .hero-announcement {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
     color: #000000;
-    text-align: center;
-    background: rgba(245, 245, 245, 0.85);
-    padding: 4px 12px;
-    border-radius: 4px;
   }
 
   .yellow-cta-btn {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background-color: #FFF03F;
+    gap: 10px;
+    background-color: #FFEE4A;
     color: #000000;
-    padding: 10px 20px;
-    font-size: 13px;
-    font-weight: 600;
+    padding: 8px 18px;
+    font-size: 12px;
+    font-weight: 700;
     letter-spacing: 0.5px;
     text-decoration: none;
     text-transform: uppercase;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .yellow-cta-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   }
 
   /* --------------------------------------
-     LOWER SECTION
+     TOP ILLUSTRATION SECTION
   -------------------------------------- */
-  .hero-lower-banner {
-    position: relative;
+  .hero-top-illustration {
     width: 100%;
-    height: 400px;
-    background: #FFFFFF;
-    display: flex;
-    box-sizing: border-box;
+    background-color: #F7F7F7;
+    line-height: 0;
   }
 
-  .hero-left-area {
-    width: 520px;
+  .hero-top-illustration img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* --------------------------------------
+     LOWER MAIN BANNER & TEXT OVERLAY
+  -------------------------------------- */
+  .hero-lower-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 420px;
+    background-color: #FFFFFF;
+  }
+
+  .hero-bg-illustration {
+    position: absolute;
+    inset: 0;
+    width: 100%;
     height: 100%;
-    padding: 40px 0 0 67px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    z-index: 1;
+  }
+
+  .hero-bg-illustration img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: right center;
+    display: block;
+  }
+
+  .hero-text-overlay {
+    position: relative;
     z-index: 2;
-    background: #FFFFFF;
+    max-width: 460px;
+    padding: 60px 0 60px 50px;
+    background: #FFFFFF; /* Masks out line art behind the text block */
   }
 
   .hero-heading {
     font-family: 'Jost', sans-serif;
-    font-weight: 500;
-    font-size: 70px;
-    line-height: 100%;
+    font-weight: 600;
+    font-size: 64px;
+    line-height: 1.05;
     color: #000000;
-    margin: 0 0 24px 0;
+    margin: 0 0 20px 0;
   }
 
   .hero-subtext {
     font-family: 'Jost', sans-serif;
     font-weight: 400;
-    font-size: 20px;
-    line-height: 140%;
+    font-size: 15px;
+    line-height: 1.4;
     color: #000000;
-    max-width: 450px;
-    margin: 0 0 32px 0;
+    margin: 0 0 28px 0;
   }
 
   .main-cta-btn {
-    width: 220px;
-    height: 50px;
+    width: 180px;
+    height: 46px;
     background-color: #000000;
     color: #FFFFFF;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
+    padding: 0 20px;
     box-sizing: border-box;
     text-decoration: none;
-    font-family: 'Jost', sans-serif;
-    font-weight: 400;
-    font-size: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .main-cta-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  .btn-arrow {
-    font-size: 16px;
-    line-height: 1;
-  }
-
-  .hero-right-area {
-    flex-grow: 1;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .hero-right-area img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: left top;
-    display: block;
   }
 
   /* --------------------------------------
@@ -237,52 +197,35 @@
   .hero-bottom-ticker {
     width: 100%;
     text-align: center;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 1px;
-    padding: 14px 0;
+    letter-spacing: 0.8px;
+    padding: 12px 0;
     border-top: 1px solid #EAEAEA;
-    background-color: #FFFFFF;
+    background-color: #F7F7F7;
     text-transform: uppercase;
+    position: relative;
+    z-index: 5;
   }
 
   /* --------------------------------------
      RESPONSIVE BREAKPOINTS
   -------------------------------------- */
-  @media (max-width: 1024px) {
-    .hero-top-wrapper {
-      height: auto;
-      min-height: 250px;
-    }
-
+  @media (max-width: 900px) {
     .hero-top-header {
       flex-direction: column;
       height: auto;
-      gap: 12px;
-      padding: 20px;
+      gap: 10px;
+      padding: 15px;
     }
 
-    .hero-lower-banner {
-      flex-direction: column;
-      height: auto;
-    }
-
-    .hero-left-area {
-      width: 100%;
+    .hero-text-overlay {
+      max-width: 100%;
       padding: 30px 20px;
     }
 
-    .hero-right-area {
-      width: 100%;
-      height: 300px;
-    }
-
     .hero-heading {
-      font-size: 48px;
-    }
-
-    .hero-subtext {
-      font-size: 16px;
+      font-size: 42px;
     }
   }
 </style>
