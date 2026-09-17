@@ -34,7 +34,7 @@
             type="button"
             class="hotspot-pin" 
             style="top: {{ block.settings.hotspot_y }}%; left: {{ block.settings.hotspot_x }}%;"
-            data-product='{{ product | json | escape }}'
+            data-handle="{{ product.handle }}"
             aria-label="View {{ product.title | escape }}"
           >
             +
@@ -52,7 +52,7 @@
     <div class="modal-content">
       <img id="modal-target-img" src="" alt="" width="200" height="240" class="modal-img">
       <div class="modal-info">
-        <h3 id="modal-target-title" class="modal-title"></h3>
+        <h3 id="modal-target-title" class="modal-title">Loading...</h3>
         <p id="modal-target-price" class="modal-price"></p>
         <div id="modal-target-desc" class="modal-desc"></div>
 
@@ -79,38 +79,50 @@
     let selectedOptions = {};
 
     document.querySelectorAll('.hotspot-pin').forEach(pin => {
-      pin.addEventListener('click', function() {
-        const rawData = this.getAttribute('data-product');
-        if (!rawData) return;
+      pin.addEventListener('click', async function() {
+        const handle = this.getAttribute('data-handle');
+        if (!handle) return;
+
+        // Reset Modal State
+        document.getElementById('modal-target-title').innerText = 'Loading...';
+        document.getElementById('modal-target-price').innerText = '';
+        document.getElementById('modal-target-desc').innerText = '';
+        document.getElementById('modal-target-img').src = '';
+        document.getElementById('modal-options-container').innerHTML = '';
+
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
 
         try {
-          currentProduct = JSON.parse(rawData);
-        } catch(e) {
-          console.error("JSON parse failed", e);
+          const response = await fetch(`{{ routes.all_products_collection_url }}/${handle}.js`);
+          if (!response.ok) throw new Error('Failed to fetch product data');
+          currentProduct = await response.json();
+        } catch (e) {
+          console.error('Error fetching product JSON:', e);
+          document.getElementById('modal-target-title').innerText = 'Error loading product';
           return;
         }
 
         selectedOptions = {};
 
-        // Title
+        // Populate Title
         document.getElementById('modal-target-title').innerText = currentProduct.title || '';
 
-        // Price
-        const priceInUnits = (currentProduct.price / 100).toFixed(2);
+        // Populate Price
+        const priceVal = currentProduct.price || (currentProduct.variants && currentProduct.variants[0] ? currentProduct.variants[0].price : 0);
+        const priceInUnits = (priceVal / 100).toFixed(2);
         document.getElementById('modal-target-price').innerText = `$${priceInUnits}`;
 
-        // Description
+        // Populate Description
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = currentProduct.description || '';
         document.getElementById('modal-target-desc').innerText = tempDiv.innerText || tempDiv.textContent || '';
 
-        // Image
+        // Populate Image
         const imgUrl = currentProduct.featured_image || (currentProduct.images && currentProduct.images[0]);
         document.getElementById('modal-target-img').src = imgUrl || '';
 
         renderProductOptions(currentProduct);
-        overlay.classList.add('active');
-        overlay.setAttribute('aria-hidden', 'false');
       });
     });
 
@@ -128,14 +140,17 @@
       const container = document.getElementById('modal-options-container');
       container.innerHTML = '';
 
-      if (!product.options || product.options.length === 0 || (product.options.length === 1 && product.options[0] === 'Title')) {
+      if (!product.options || product.options.length === 0 || (product.options.length === 1 && product.options[0].name === 'Title')) {
         if (product.variants && product.variants.length > 0) {
           document.getElementById('modal-selected-variant-id').value = product.variants[0].id;
         }
         return;
       }
 
-      product.options.forEach((optName, idx) => {
+      product.options.forEach((optionObj, idx) => {
+        const optName = typeof optionObj === 'string' ? optionObj : optionObj.name;
+        const optionValues = typeof optionObj === 'object' && optionObj.values ? optionObj.values : [...new Set(product.variants.map(v => v.options[idx]))];
+
         const optionWrapper = document.createElement('div');
         optionWrapper.className = 'modal-option-group';
 
@@ -144,7 +159,6 @@
         label.innerText = optName;
         optionWrapper.appendChild(label);
 
-        const optionValues = [...new Set(product.variants.map(v => v.options[idx]))];
         selectedOptions[optName] = optionValues[0];
 
         if (optName.toLowerCase() === 'color' || optName.toLowerCase() === 'colour') {
@@ -215,8 +229,11 @@
     }
 
     function updateVariantSelection() {
+      if (!currentProduct || !currentProduct.variants) return;
+
       const matchedVariant = currentProduct.variants.find(variant => {
-        return currentProduct.options.every((optName, idx) => {
+        return currentProduct.options.every((optionObj, idx) => {
+          const optName = typeof optionObj === 'string' ? optionObj : optionObj.name;
           return variant.options[idx] === selectedOptions[optName];
         });
       });
