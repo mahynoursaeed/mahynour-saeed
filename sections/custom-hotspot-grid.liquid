@@ -94,8 +94,9 @@
         overlay.setAttribute('aria-hidden', 'false');
 
         try {
-          const response = await fetch(`{{ routes.all_products_collection_url }}/${handle}.js`);
-          if (!response.ok) throw new Error('Failed to fetch product data');
+          const rootUrl = '{{ routes.root_url }}'.endsWith('/') ? '{{ routes.root_url }}' : '{{ routes.root_url }}/';
+          const response = await fetch(`${rootUrl}products/${handle}.js`);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           currentProduct = await response.json();
         } catch (e) {
           console.error('Error fetching product JSON:', e);
@@ -180,7 +181,6 @@
           });
           optionWrapper.appendChild(colorGroup);
         } else {
-          // Custom Dropdown UI
           const customDropdown = document.createElement('div');
           customDropdown.className = 'custom-dropdown';
 
@@ -250,7 +250,6 @@
       }
     }
 
-    // AJAX Cart Submit with Bonus Soft Winter Jacket check
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
       const variantId = document.getElementById('modal-selected-variant-id').value;
@@ -263,7 +262,8 @@
 
       if (isBlackAndMedium) {
         try {
-          const searchRes = await fetch('{{ routes.root_url }}search/suggest.json?q=Soft%20Winter%20Jacket&resources[type]=product');
+          const rootUrl = '{{ routes.root_url }}'.endsWith('/') ? '{{ routes.root_url }}' : '{{ routes.root_url }}/';
+          const searchRes = await fetch(`${rootUrl}search/suggest.json?q=Soft%20Winter%20Jacket&resources[type]=product`);
           const searchData = await searchRes.json();
           const jacketProduct = searchData.resources.results.products[0];
 
