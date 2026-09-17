@@ -81,13 +81,14 @@
     let currentProduct = null;
     let selectedOptions = {};
 
+    // Hex mapping for store colors
     const colorHexMap = {
       'black': '#000000',
       'white': '#FFFFFF',
-      'grey': '#AFAFB7',
-      'gray': '#AFAFB7',
-      'red': '#B20F36',
-      'blue': '#0D499F',
+      'grey': '#9E9E9E',
+      'gray': '#9E9E9E',
+      'red': '#B00020',
+      'blue': '#0F4C81',
       'navy': '#000080',
       'green': '#2A9D8F',
       'olive': '#556B2F',
@@ -140,15 +141,18 @@
 
         selectedOptions = {};
 
+        // Title & Price
         document.getElementById('modal-target-title').innerText = currentProduct.title || '';
         const priceVal = currentProduct.price || (currentProduct.variants && currentProduct.variants[0] ? currentProduct.variants[0].price : 0);
         document.getElementById('modal-target-price').innerText = `${(priceVal / 100).toFixed(2).replace('.', ',')}€`;
 
+        // Description
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = currentProduct.description || '';
         const plainDesc = tempDiv.innerText || tempDiv.textContent || '';
         document.getElementById('modal-target-desc').innerText = plainDesc.length > 110 ? plainDesc.substring(0, 110) + '...' : plainDesc;
 
+        // Image assignment
         let rawImg = currentProduct.featured_image || currentProduct.featured_media?.preview_image?.src || (currentProduct.images && currentProduct.images[0]) || '';
         const imgElement = document.getElementById('modal-target-img');
         imgElement.src = getFormattedImageUrl(rawImg);
@@ -208,21 +212,11 @@
           if (isSingleOption) {
             const singleCell = document.createElement('div');
             singleCell.className = 'color-option-cell-single';
-            
-            const accentBar = document.createElement('span');
-            accentBar.className = 'color-accent-bar';
-            accentBar.style.backgroundColor = getColorHex(optionValues[0]);
-            singleCell.appendChild(accentBar);
-
-            const textSpan = document.createElement('span');
-            textSpan.className = 'color-option-text';
-            textSpan.innerText = optionValues[0];
-            singleCell.appendChild(textSpan);
-
+            singleCell.innerText = optionValues[0];
             colorTrack.appendChild(singleCell);
             selectedOptions[optName] = optionValues[0];
           } else {
-            optionValues.forEach((val, valIdx) => {
+            optionValues.forEach((val) => {
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
@@ -236,15 +230,13 @@
               textSpan.innerText = val;
               colorOption.appendChild(textSpan);
 
-              if (valIdx === 0) {
-                colorOption.classList.add('selected');
-                selectedOptions[optName] = val;
-              }
-
               colorOption.addEventListener('click', function() {
+                // Clear selection state from all options
                 colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
                   c.classList.remove('selected');
                 });
+
+                // Apply selected state to clicked cell (turns background black)
                 this.classList.add('selected');
 
                 selectedOptions[optName] = val;
@@ -253,6 +245,8 @@
 
               colorTrack.appendChild(colorOption);
             });
+
+            // Do NOT auto-click the first cell anymore, keeping them unselected (white) initially
           }
 
           optionWrapper.appendChild(colorTrack);
@@ -262,7 +256,7 @@
 
           const selectedDiv = document.createElement('div');
           selectedDiv.className = 'dropdown-selected';
-          selectedDiv.innerHTML = `<span class="dropdown-placeholder">Choose your ${optName.toLowerCase()}</span><span class="dropdown-arrow">&#8250;</span>`;
+          selectedDiv.innerHTML = `<span>Choose your size</span><span class="dropdown-arrow">&#8250;</span>`;
 
           const menuDiv = document.createElement('div');
           menuDiv.className = 'dropdown-menu';
@@ -276,14 +270,9 @@
               e.stopPropagation();
               menuDiv.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active-item'));
               this.classList.add('active-item');
-              
-              const spanTag = selectedDiv.querySelector('span');
-              spanTag.innerText = val;
-              spanTag.classList.remove('dropdown-placeholder');
-              
+              selectedDiv.querySelector('span').innerText = val;
               selectedOptions[optName] = val;
               customDropdown.classList.remove('open');
-              customDropdown.classList.add('has-selection');
               updateVariantSelection();
             });
 
@@ -337,10 +326,29 @@
       const variantId = document.getElementById('modal-selected-variant-id').value;
       if (!variantId) return;
 
+      const itemsToAdd = [{ id: parseInt(variantId), quantity: 1 }];
+      const optionValues = Object.values(selectedOptions).map(v => String(v).toLowerCase());
+      const isBlackAndMedium = optionValues.includes('black') && (optionValues.includes('medium') || optionValues.includes('m'));
+
+      if (isBlackAndMedium) {
+        try {
+          const rootUrl = '{{ routes.root_url }}'.endsWith('/') ? '{{ routes.root_url }}' : '{{ routes.root_url }}/';
+          const searchRes = await fetch(`${rootUrl}search/suggest.json?q=Soft%20Winter%20Jacket&resources[type]=product`);
+          const searchData = await searchRes.json();
+          const jacketProduct = searchData.resources.results.products[0];
+
+          if (jacketProduct && jacketProduct.variants && jacketProduct.variants[0]) {
+            itemsToAdd.push({ id: jacketProduct.variants[0].id, quantity: 1 });
+          }
+        } catch (err) {
+          console.error('Failed to query bonus jacket:', err);
+        }
+      }
+
       fetch('{{ routes.cart_add_url }}.js', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: [{ id: parseInt(variantId), quantity: 1 }] })
+        body: JSON.stringify({ items: itemsToAdd })
       })
       .then(res => res.json())
       .then(() => {
@@ -357,7 +365,7 @@
     padding: 60px 5%;
     max-width: 1200px;
     margin: 0 auto;
-    font-family: 'Jost', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
   .grid-title {
@@ -476,7 +484,6 @@
   }
 
   .modal-title {
-    font-family: 'Jost', sans-serif;
     font-size: 15px;
     font-weight: 400;
     margin: 0 0 6px;
@@ -484,21 +491,17 @@
   }
 
   .modal-price {
-    font-family: 'Lustria', serif;
-    font-size: 16px;
-    font-weight: 400;
+    font-size: 14px;
+    font-weight: 500;
     margin: 0 0 8px;
     color: #111;
   }
 
   .modal-desc {
-    font-family: 'Jost', sans-serif;
-    font-size: 14px;
-    line-height: 1.1;
-    color: #000;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #666;
     margin: 0;
-    letter-spacing: -0.01em;
-    font-weight: 300;
   }
 
   .modal-option-group {
@@ -507,40 +510,40 @@
 
   .option-label {
     display: block;
-    font-family: 'Jost', sans-serif;
-    font-size: 14px;
-    line-height: 130%;
-    color: #333333;
+    font-size: 12px;
+    color: #444;
     margin-bottom: 6px;
   }
 
-  /* Color Track Container with Smooth Figma Animation */
+  /* Color Track Container */
   .color-picker-track {
     position: relative;
-    border: 0.5px solid #000000;
+    border: 1px solid #111;
     background: #fff;
     box-sizing: border-box;
     overflow: hidden;
-    height: 48px;
+    height: 42px;
   }
 
   .color-picker-track.multi-option {
     display: flex;
   }
 
+  /* Single Option Cell */
   .color-option-cell-single {
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    padding-left: 14px;
-    position: relative;
-    background: #fff;
+    justify-content: flex-end;
+    padding-right: 16px;
+    font-size: 14px;
     color: #111;
+    background: #fff;
     box-sizing: border-box;
   }
 
+  /* Base Unselected Color Cell */
   .color-option-cell {
     flex: 1;
     display: flex;
@@ -550,17 +553,18 @@
     position: relative;
     cursor: pointer;
     user-select: none;
-    border-right: 0.5px solid #000000;
+    border-right: 1px solid #111;
     background-color: #ffffff;
-    color: #000000;
+    color: #111111;
     overflow: hidden;
-    transition: flex 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.25s ease, color 0.25s ease;
+    transition: color 0.15s ease;
   }
 
   .color-option-cell:last-child {
     border-right: none;
   }
 
+  /* Vertical Accent Color Strip */
   .color-accent-bar {
     width: 4px;
     height: 100%;
@@ -569,64 +573,44 @@
     top: 0;
     bottom: 0;
     z-index: 3;
-    transition: opacity 0.2s ease;
   }
 
   .color-option-text {
-    font-family: 'Jost', sans-serif;
-    font-style: normal;
-    font-weight: 400;
-    font-size: 18px;
-    line-height: 100%;
-    letter-spacing: -0.02em;
-    text-transform: capitalize;
-    margin-left: 8px;
+    font-size: 14px;
+    margin-left: 6px;
     z-index: 3;
     color: inherit;
     position: relative;
   }
 
+  /* Selected State: Black background with White text */
   .color-option-cell.selected {
-    flex: 2;
     background-color: #000000 !important;
     color: #ffffff !important;
-  }
-
-  .color-option-cell.selected .color-accent-bar {
-    opacity: 0;
   }
 
   /* Custom Size Dropdown */
   .custom-dropdown {
     position: relative;
     width: 100%;
-    height: 48px;
   }
 
   .dropdown-selected {
     width: 100%;
-    height: 100%;
-    border: 0.5px solid #000000;
+    padding: 10px 14px;
+    border: 1px solid #ccc;
     background: #fff;
-    font-family: 'Jost', sans-serif;
-    font-size: 16px;
+    font-size: 13px;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 16px;
     box-sizing: border-box;
-    color: #000000;
-    letter-spacing: -0.02em;
-  }
-
-  .dropdown-selected span:first-child {
-    flex-grow: 1;
-    text-align: center;
+    color: #333;
   }
 
   .dropdown-arrow {
-    font-size: 16px;
+    font-size: 14px;
     transform: rotate(90deg);
     transition: transform 0.2s ease;
   }
@@ -642,7 +626,7 @@
     left: 0;
     width: 100%;
     background: #fff;
-    border: 1px solid #000000;
+    border: 1px solid #ccc;
     border-top: none;
     z-index: 100;
     box-sizing: border-box;
@@ -656,47 +640,41 @@
   }
 
   .dropdown-item {
-    padding: 12px 16px;
-    font-family: 'Jost', sans-serif;
-    font-size: 16px;
+    padding: 10px 14px;
+    font-size: 13px;
     cursor: pointer;
-    text-align: center;
-    color: #000000;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
+    text-align: left;
+    color: #111;
     transition: background 0.15s ease, color 0.15s ease;
   }
 
   .dropdown-item:hover,
   .dropdown-item.active-item {
-    background: #000000 !important;
-    color: #ffffff !important;
+    background: #000 !important;
+    color: #fff !important;
   }
 
   /* Add to Cart Button */
   .modal-atc-btn {
     width: 100%;
-    margin-top: 12px;
-    padding: 16px;
-    background: #000000;
-    color: #ffffff;
-    border: 0.5px solid #000000;
-    font-family: 'Jost', sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    letter-spacing: -0.02em;
+    margin-top: 8px;
+    padding: 14px 16px;
+    background: #000;
+    color: #fff;
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1px;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-sizing: border-box;
-    text-align: center;
   }
 
   .modal-atc-btn:disabled {
     background: #dcdcdc;
     color: #888;
-    border-color: #dcdcdc;
     cursor: not-allowed;
   }
 </style>
