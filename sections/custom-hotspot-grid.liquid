@@ -216,7 +216,14 @@
             colorTrack.appendChild(singleCell);
             selectedOptions[optName] = optionValues[0];
           } else {
-            optionValues.forEach((val) => {
+            // Sliding Pill Element
+            const slidingPill = document.createElement('div');
+            slidingPill.className = 'color-sliding-pill';
+            colorTrack.appendChild(slidingPill);
+
+            const cellElements = [];
+
+            optionValues.forEach((val, index) => {
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
@@ -231,22 +238,33 @@
               colorOption.appendChild(textSpan);
 
               colorOption.addEventListener('click', function() {
-                // Clear selection state from all options
-                colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
-                  c.classList.remove('selected');
-                });
-
-                // Apply selected state to clicked cell (turns background black)
+                cellElements.forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
+
+                const trackRect = colorTrack.getBoundingClientRect();
+                const optionRect = this.getBoundingClientRect();
+                
+                const cellWidth = optionRect.width;
+                const cellLeft = optionRect.left - trackRect.left;
+
+                slidingPill.style.width = `${cellWidth}px`;
+                slidingPill.style.transform = `translateX(${cellLeft}px)`;
 
                 selectedOptions[optName] = val;
                 updateVariantSelection();
               });
 
               colorTrack.appendChild(colorOption);
-            });
+              cellElements.push(colorOption);
 
-            // Do NOT auto-click the first cell anymore, keeping them unselected (white) initially
+              if (index === 0) {
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    colorOption.click();
+                  });
+                });
+              }
+            });
           }
 
           optionWrapper.appendChild(colorTrack);
@@ -529,6 +547,18 @@
     display: flex;
   }
 
+  /* Sliding Black Pill Element */
+  .color-sliding-pill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: #000000;
+    z-index: 2;
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    pointer-events: none;
+  }
+
   /* Single Option Cell */
   .color-option-cell-single {
     width: 100%;
@@ -557,6 +587,7 @@
     background-color: #ffffff;
     color: #111111;
     overflow: hidden;
+    z-index: 1;
     transition: color 0.15s ease;
   }
 
@@ -583,9 +614,8 @@
     position: relative;
   }
 
-  /* Selected State: Black background with White text */
+  /* Selected State: Text turns white when covered by sliding pill */
   .color-option-cell.selected {
-    background-color: #000000 !important;
     color: #ffffff !important;
   }
 
