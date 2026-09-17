@@ -222,7 +222,7 @@
             colorTrack.appendChild(singleCell);
             selectedOptions[optName] = optionValues[0];
           } else {
-            optionValues.forEach((val) => {
+            optionValues.forEach((val, valIdx) => {
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
@@ -235,6 +235,12 @@
               textSpan.className = 'color-option-text';
               textSpan.innerText = val;
               colorOption.appendChild(textSpan);
+
+              // Auto-select the first color option by default
+              if (valIdx === 0) {
+                colorOption.classList.add('selected');
+                selectedOptions[optName] = val;
+              }
 
               colorOption.addEventListener('click', function() {
                 colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
@@ -479,19 +485,21 @@
   }
 
   .modal-price {
-    font-family: 'Jost', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
+    font-family: 'Lustria', serif;
+    font-size: 16px;
+    font-weight: 400;
     margin: 0 0 8px;
     color: #111;
   }
 
   .modal-desc {
     font-family: 'Jost', sans-serif;
-    font-size: 11px;
-    line-height: 1.45;
-    color: #666;
+    font-size: 14px;
+    line-height: 1.1;
+    color: #000;
     margin: 0;
+    letter-spacing: -0.01em;
+    font-weight: 300;
   }
 
   .modal-option-group {
