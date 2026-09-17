@@ -15,7 +15,14 @@
     {% for product in catalog_products limit: section.settings.products_to_show %}
       <div class="grid-card">
         {% if product.featured_image != blank %}
-          <img src="{{ product.featured_image | image_url: width: 800 }}" alt="{{ product.title | escape }}" loading="lazy" class="grid-img">
+          <img 
+            src="{{ product.featured_image | image_url: width: 800 }}" 
+            alt="{{ product.title | escape }}" 
+            width="{{ product.featured_image.width }}" 
+            height="{{ product.featured_image.height }}" 
+            loading="lazy" 
+            class="grid-img"
+          >
         {% else %}
           {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
         {% endif %}
@@ -27,7 +34,10 @@
           style="top: {{ section.settings.hotspot_y }}%; left: {{ section.settings.hotspot_x }}%;"
           data-title="{{ product.title | escape }}"
           data-price="{{ product.price | money }}"
+          data-url="{{ routes.root_url }}products/{{ product.handle }}"
           data-image="{% if product.featured_image != blank %}{{ product.featured_image | image_url: width: 500 }}{% endif %}"
+          data-image-width="{% if product.featured_image != blank %}{{ product.featured_image.width }}{% endif %}"
+          data-image-height="{% if product.featured_image != blank %}{{ product.featured_image.height }}{% endif %}"
           data-description="{{ product.description | strip_html | truncate: 120 | escape }}"
           aria-label="View item details"
         >
@@ -45,11 +55,12 @@
   <div class="modal-box">
     <button type="button" id="modal-close-trigger" class="modal-close-btn">&times;</button>
     <div class="modal-content">
-      <img id="modal-target-img" src="" alt="Product Image" class="modal-img">
+      <img id="modal-target-img" src="" alt="Product Image" width="500" height="500" class="modal-img">
       <div class="modal-info">
         <h3 id="modal-target-title"></h3>
         <p id="modal-target-price" class="modal-price"></p>
         <p id="modal-target-desc" class="modal-desc"></p>
+        <a id="modal-target-link" href="{{ routes.root_url }}" class="modal-link">View Product</a>
       </div>
     </div>
   </div>
@@ -171,6 +182,17 @@
   .modal-price {
     font-weight: bold;
     color: #111;
+  }
+
+  .modal-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
   }
 </style>
 
