@@ -104,17 +104,6 @@
       return colorHexMap[normalized] || normalized;
     }
 
-    // Extract primary color from title if product is tagged/named by color
-    function extractColorFromTitle(title) {
-      if (!title) return null;
-      const lowerTitle = title.toLowerCase();
-      const knownColors = ['blue', 'red', 'green', 'olive', 'yellow', 'navy', 'white', 'black', 'pink', 'brown', 'grey', 'gray'];
-      for (const color of knownColors) {
-        if (lowerTitle.includes(color)) return color;
-      }
-      return null;
-    }
-
     function getFormattedImageUrl(rawUrl) {
       if (!rawUrl) return 'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image-1.png';
       if (typeof rawUrl === 'object') {
@@ -202,8 +191,6 @@
         return 0;
       });
 
-      const titleColor = extractColorFromTitle(product.title);
-
       sortedOptions.forEach((optionObj) => {
         const idx = product.options.findIndex(o => (typeof o === 'string' ? o : o.name) === (typeof optionObj === 'string' ? optionObj : optionObj.name));
         const optName = typeof optionObj === 'string' ? optionObj : optionObj.name;
@@ -233,12 +220,10 @@
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
-              // Determine vertical strip color (uses title color fallback if variant value is generic black/white)
-              const colorForAccent = (titleColor && val.toLowerCase() === 'black') ? titleColor : val;
-
+              // Always use the option value directly for its own accent strip color
               const accentBar = document.createElement('span');
               accentBar.className = 'color-accent-bar';
-              accentBar.style.backgroundColor = getColorHex(colorForAccent);
+              accentBar.style.backgroundColor = getColorHex(val);
               colorOption.appendChild(accentBar);
 
               const textSpan = document.createElement('span');
@@ -576,7 +561,8 @@
     border-right: 1px solid #111;
     background-color: #ffffff;
     color: #111111;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    overflow: hidden;
+    transition: color 0.15s ease;
   }
 
   .color-option-cell:last-child {
@@ -591,14 +577,15 @@
     left: 0;
     top: 0;
     bottom: 0;
-    z-index: 2;
+    z-index: 3;
   }
 
   .color-option-text {
     font-size: 14px;
     margin-left: 6px;
-    z-index: 2;
+    z-index: 3;
     color: inherit;
+    position: relative;
   }
 
   /* Selected State: Black background with White text */
