@@ -1,11 +1,9 @@
 <div class="custom-hero-container">
 
-  <!-- TOP HEADER SECTION (White-Gray Background with SVG Layered Above) -->
+  <!-- TOP HEADER SECTION (White-Gray BG + SVG Layer) -->
   <div class="hero-top-wrapper">
-    <!-- SVG Illustration Layered Above Background -->
-    <div class="hero-top-svg" style="background-image: url('{{ 'hero-banner1-bg.svg' | asset_url }}');"></div>
+    <div class="hero-top-svg"></div>
 
-    <!-- Header Navigation Bar Content -->
     <header class="hero-top-header">
       <div class="hero-brand">
         <a href="/" class="brand-link">{{ section.settings.brand_name }}</a>
@@ -24,9 +22,9 @@
     </header>
   </div>
 
-  <!-- LOWER MAIN SECTION (Split Left & Right Areas) -->
+  <!-- LOWER MAIN SECTION (Left Text + Right SVG Illustration) -->
   <div class="hero-lower-banner">
-    <!-- Left Area: Clean Text Content -->
+    <!-- Left Area: Text Content -->
     <div class="hero-left-area">
       <h1 class="hero-heading">{{ section.settings.heading }}</h1>
       <p class="hero-subtext">{{ section.settings.description }}</p>
@@ -36,11 +34,11 @@
       </a>
     </div>
 
-    <!-- Right Area: SVG Illustration Layer -->
-    <div class="hero-right-area" style="background-image: url('{{ 'hero-banner2-bg.svg' | asset_url }}');"></div>
+    <!-- Right Area: Line Art Illustration -->
+    <div class="hero-right-area"></div>
   </div>
 
-  <!-- Bottom Ticker Bar -->
+  <!-- Bottom Ticker -->
   {% if section.settings.footer_ticker_text != blank %}
     <div class="hero-bottom-ticker">
       <span>{{ section.settings.footer_ticker_text }}</span>
@@ -64,22 +62,22 @@
   }
 
   /* --------------------------------------
-     TOP SECTION: White-Gray BG + SVG + Header
+     TOP SECTION
   -------------------------------------- */
   .hero-top-wrapper {
     position: relative;
     width: 100%;
     height: 390px;
-    background-color: #F5F5F5; /* White-Gray Background */
+    background-color: #F5F5F5;
     box-sizing: border-box;
   }
 
-  /* SVG Layered Above the Background */
   .hero-top-svg {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    background-image: url("{{ 'hero-banner1-bg.svg' | asset_url }}");
     background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
@@ -87,7 +85,6 @@
     pointer-events: none;
   }
 
-  /* Top Header Overlay Content */
   .hero-top-header {
     position: relative;
     z-index: 2;
@@ -138,7 +135,7 @@
   }
 
   /* --------------------------------------
-     LOWER SECTION: Left & Right Split Areas
+     LOWER SECTION
   -------------------------------------- */
   .hero-lower-banner {
     position: relative;
@@ -149,7 +146,6 @@
     box-sizing: border-box;
   }
 
-  /* Left Area: Text Content */
   .hero-left-area {
     width: 550px;
     height: 100%;
@@ -208,10 +204,10 @@
     line-height: 1;
   }
 
-  /* Right Area: SVG Illustration Layer */
   .hero-right-area {
     flex-grow: 1;
     height: 100%;
+    background-image: url("{{ 'hero-banner2-bg.svg' | asset_url }}");
     background-size: cover;
     background-position: left top;
     background-repeat: no-repeat;
@@ -232,8 +228,15 @@
     text-transform: uppercase;
   }
 
-  /* Responsive Adjustments */
+  /* --------------------------------------
+     RESPONSIVE BREAKPOINTS
+  -------------------------------------- */
   @media (max-width: 1024px) {
+    .hero-top-wrapper {
+      height: auto;
+      min-height: 250px;
+    }
+
     .hero-top-header {
       flex-direction: column;
       height: auto;
