@@ -3,18 +3,11 @@
 <div class="hotspot-grid-wrapper">
   <h2 class="grid-title">{{ section.settings.section_title }}</h2>
 
-  {% liquid
-    if section.settings.collection != blank
-      assign catalog_products = section.settings.collection.products
-    else
-      assign catalog_products = collections.all.products
-    endif
-  %}
-
   <div class="photo-grid">
-    {% for product in catalog_products limit: section.settings.products_to_show %}
-      <div class="grid-card">
-        {% if product.featured_image != blank %}
+    {% for block in section.blocks %}
+      {% assign product = block.settings.product %}
+      <div class="grid-card" {{ block.shopify_attributes }}>
+        {% if product != blank and product.featured_image != blank %}
           <img 
             src="{{ product.featured_image | image_url: width: 800 }}" 
             alt="{{ product.title | escape }}" 
@@ -23,70 +16,53 @@
             loading="lazy" 
             class="grid-img"
           >
+        {% elsif block.settings.custom_image != blank %}
+          <img 
+            src="{{ block.settings.custom_image | image_url: width: 800 }}" 
+            alt="{{ product.title | escape }}" 
+            width="{{ block.settings.custom_image.width }}" 
+            height="{{ block.settings.custom_image.height }}" 
+            loading="lazy" 
+            class="grid-img"
+          >
         {% else %}
           {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
         {% endif %}
 
-        <!-- Hotspot Plus Button -->
-        <button 
-          type="button"
-          class="hotspot-pin" 
-          style="top: {{ section.settings.hotspot_y }}%; left: {{ section.settings.hotspot_x }}%;"
-          data-title="{{ product.title | escape }}"
-          data-price="{{ product.price | money }}"
-          data-url="{{ routes.root_url }}products/{{ product.handle }}"
-          data-image="{% if product.featured_image != blank %}{{ product.featured_image | image_url: width: 500 }}{% endif %}"
-          data-description="{{ product.description | strip_html | truncate: 120 | escape }}"
-          data-variant-id="{{ product.first_available_variant.id }}"
-          aria-label="View item details"
-        >
-          +
-        </button>
+        {% if product != blank %}
+          <button 
+            type="button"
+            class="hotspot-pin" 
+            style="top: {{ block.settings.hotspot_y }}%; left: {{ block.settings.hotspot_x }}%;"
+            data-product-json='{{ product | json | escape }}'
+            aria-label="View {{ product.title | escape }}"
+          >
+            +
+          </button>
+        {% endif %}
       </div>
-    {% else %}
-      <p>No products found in catalog.</p>
     {% endfor %}
   </div>
 </div>
 
-<!-- Modal Popup -->
+<!-- Dynamic Hotspot Modal -->
 <div id="hotspot-modal-overlay" class="modal-overlay" aria-hidden="true">
   <div class="modal-box">
     <button type="button" id="modal-close-trigger" class="modal-close-btn" aria-label="Close modal">&times;</button>
     <div class="modal-content">
-      <img id="modal-target-img" src="" alt="Product Image" width="200" height="240" class="modal-img">
+      <img id="modal-target-img" src="" alt="" width="200" height="240" class="modal-img">
       <div class="modal-info">
         <h3 id="modal-target-title" class="modal-title"></h3>
         <p id="modal-target-price" class="modal-price"></p>
-        <p id="modal-target-desc" class="modal-desc"></p>
+        <div id="modal-target-desc" class="modal-desc"></div>
 
-        <!-- Color Selector -->
-        <div class="modal-option-group">
-          <label class="option-label">Color</label>
-          <div class="color-options">
-            <button type="button" class="color-btn active" data-color="White">White</button>
-            <button type="button" class="color-btn" data-color="Black">Black</button>
-          </div>
-        </div>
+        <!-- Options Container Rendered via JS -->
+        <div id="modal-options-container"></div>
 
-        <!-- Size Selector -->
-        <div class="modal-option-group">
-          <label for="modal-size-select" class="option-label">Size</label>
-          <div class="select-wrapper">
-            <select id="modal-size-select" class="size-select">
-              <option value="" disabled selected>Choose your size</option>
-              <option value="S">Small</option>
-              <option value="M">Medium</option>
-              <option value="L">Large</option>
-              <option value="XL">X-Large</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Add to Cart / Link Button -->
-        <form action="{{ routes.cart_add_url }}" method="post" id="hotspot-add-to-cart-form">
-          <input type="hidden" name="id" id="modal-variant-id" value="">
-          <button type="submit" class="modal-atc-btn">
+        <!-- Add To Cart Form -->
+        <form id="hotspot-add-to-cart-form">
+          <input type="hidden" id="modal-selected-variant-id" name="id" value="">
+          <button type="submit" id="modal-atc-submit" class="modal-atc-btn">
             ADD TO CART <span>&rarr;</span>
           </button>
         </form>
@@ -94,6 +70,178 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.getElementById('hotspot-modal-overlay');
+    const closeBtn = document.getElementById('modal-close-trigger');
+    const form = document.getElementById('hotspot-add-to-cart-form');
+    
+    let currentProduct = null;
+    let selectedOptions = {};
+
+    // Open Modal and Populate Data
+    document.querySelectorAll('.hotspot-pin').forEach(pin => {
+      pin.addEventListener('click', function() {
+        currentProduct = JSON.parse(this.getAttribute('data-product-json'));
+        selectedOptions = {};
+
+        document.getElementById('modal-target-title').innerText = currentProduct.title;
+        document.getElementById('modal-target-price').innerText = (currentProduct.price / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = currentProduct.description;
+        document.getElementById('modal-target-desc').innerText = tempDiv.innerText || tempDiv.textContent;
+
+        const imgUrl = currentProduct.featured_image || (currentProduct.images && currentProduct.images[0]);
+        document.getElementById('modal-target-img').src = imgUrl;
+
+        renderProductOptions(currentProduct);
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+      });
+    });
+
+    // Close Modal Events
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeModal();
+    });
+
+    function closeModal() {
+      overlay.classList.remove('active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    // Dynamic Option and Variant Builder
+    function renderProductOptions(product) {
+      const container = document.getElementById('modal-options-container');
+      container.innerHTML = '';
+
+      if (!product.options || product.options.length === 0 || (product.options.length === 1 && product.options[0].name === 'Title')) {
+        document.getElementById('modal-selected-variant-id').value = product.variants[0].id;
+        return;
+      }
+
+      product.options.forEach((option) => {
+        const optionWrapper = document.createElement('div');
+        optionWrapper.className = 'modal-option-group';
+
+        const label = document.createElement('label');
+        label.className = 'option-label';
+        label.innerText = option.name;
+        optionWrapper.appendChild(label);
+
+        selectedOptions[option.name] = option.values[0];
+
+        if (option.name.toLowerCase() === 'color' || option.name.toLowerCase() === 'colour') {
+          const colorGroup = document.createElement('div');
+          colorGroup.className = 'color-options';
+          
+          option.values.forEach((val, valIndex) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `color-btn ${valIndex === 0 ? 'active' : ''}`;
+            btn.innerText = val;
+            btn.addEventListener('click', function() {
+              colorGroup.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+              this.classList.add('active');
+              selectedOptions[option.name] = val;
+              updateVariantSelection();
+            });
+            colorGroup.appendChild(btn);
+          });
+          optionWrapper.appendChild(colorGroup);
+        } else {
+          const selectWrapper = document.createElement('div');
+          selectWrapper.className = 'select-wrapper';
+          
+          const select = document.createElement('select');
+          select.className = 'size-select';
+
+          option.values.forEach(val => {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.innerText = val;
+            select.appendChild(opt);
+          });
+
+          select.addEventListener('change', function() {
+            selectedOptions[option.name] = this.value;
+            updateVariantSelection();
+          });
+
+          selectWrapper.appendChild(select);
+          optionWrapper.appendChild(selectWrapper);
+        }
+
+        container.appendChild(optionWrapper);
+      });
+
+      updateVariantSelection();
+    }
+
+    // Variant Matching Logic
+    function updateVariantSelection() {
+      const matchedVariant = currentProduct.variants.find(variant => {
+        return currentProduct.options.every((opt, idx) => {
+          return variant.options[idx] === selectedOptions[opt.name];
+        });
+      });
+
+      const atcBtn = document.getElementById('modal-atc-submit');
+      if (matchedVariant && matchedVariant.available) {
+        document.getElementById('modal-selected-variant-id').value = matchedVariant.id;
+        atcBtn.disabled = false;
+        atcBtn.innerHTML = 'ADD TO CART <span>&rarr;</span>';
+      } else {
+        document.getElementById('modal-selected-variant-id').value = '';
+        atcBtn.disabled = true;
+        atcBtn.innerText = 'UNAVAILABLE';
+      }
+    }
+
+    // AJAX Add to Cart & Automatic Soft Winter Jacket Addition
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const variantId = document.getElementById('modal-selected-variant-id').value;
+      if (!variantId) return;
+
+      const itemsToAdd = [{ id: parseInt(variantId), quantity: 1 }];
+
+      // Bonus rule verification: check for Black & Medium options
+      const optionValues = Object.values(selectedOptions).map(v => String(v).toLowerCase());
+      const isBlackAndMedium = optionValues.includes('black') && (optionValues.includes('medium') || optionValues.includes('m'));
+
+      if (isBlackAndMedium) {
+        try {
+          const searchRes = await fetch('{{ routes.root_url }}search/suggest.json?q=Soft%20Winter%20Jacket&resources[type]=product');
+          const searchData = await searchRes.json();
+          const jacketProduct = searchData.resources.results.products[0];
+
+          if (jacketProduct && jacketProduct.variants && jacketProduct.variants[0]) {
+            itemsToAdd.push({ id: jacketProduct.variants[0].id, quantity: 1 });
+          }
+        } catch (err) {
+          console.error('Failed to add bonus item:', err);
+        }
+      }
+
+      // Execute Cart API Request
+      fetch('{{ routes.cart_add_url }}.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToAdd })
+      })
+      .then(res => res.json())
+      .then(() => {
+        closeModal();
+        window.location.href = '{{ routes.cart_url }}';
+      })
+      .catch(err => console.error('Cart add failed:', err));
+    });
+  });
+</script>
 
 <style>
   .hotspot-grid-wrapper {
@@ -134,7 +282,6 @@
     object-fit: cover;
   }
 
-  /* Hotspot Pin Button */
   .hotspot-pin {
     position: absolute;
     transform: translate(-50%, -50%);
@@ -144,7 +291,6 @@
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(0, 0, 0, 0.1);
     font-size: 16px;
-    font-weight: 300;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -157,7 +303,6 @@
     transform: translate(-50%, -50%) scale(1.15);
   }
 
-  /* Modal Styling */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -185,7 +330,6 @@
     max-width: 480px;
     width: 90%;
     position: relative;
-    border-radius: 0;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   }
 
@@ -316,8 +460,9 @@
     align-items: center;
   }
 
-  .modal-atc-btn:hover {
-    background: #222;
+  .modal-atc-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
   }
 </style>
 
@@ -330,46 +475,57 @@
       "id": "section_title",
       "label": "Heading",
       "default": "Tisso vision in the wild"
-    },
+    }
+  ],
+  "blocks": [
     {
-      "type": "collection",
-      "id": "collection",
-      "label": "Collection (Optional)",
-      "info": "Leave blank to display all catalog products."
-    },
-    {
-      "type": "range",
-      "id": "products_to_show",
-      "min": 3,
-      "max": 12,
-      "step": 3,
-      "default": 6,
-      "label": "Products to display"
-    },
-    {
-      "type": "range",
-      "id": "hotspot_x",
-      "min": 5,
-      "max": 95,
-      "step": 1,
-      "unit": "%",
-      "label": "Default Hotspot X Position",
-      "default": 50
-    },
-    {
-      "type": "range",
-      "id": "hotspot_y",
-      "min": 5,
-      "max": 95,
-      "step": 1,
-      "unit": "%",
-      "label": "Default Hotspot Y Position",
-      "default": 50
+      "type": "grid_item",
+      "name": "Product Block",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Select Product"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "Custom Image Override (Optional)"
+        },
+        {
+          "type": "range",
+          "id": "hotspot_x",
+          "min": 5,
+          "max": 95,
+          "step": 1,
+          "unit": "%",
+          "label": "Hotspot Horizontal (X) Position",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "hotspot_y",
+          "min": 5,
+          "max": 95,
+          "step": 1,
+          "unit": "%",
+          "label": "Hotspot Vertical (Y) Position",
+          "default": 50
+        }
+      ]
     }
   ],
   "presets": [
     {
-      "name": "Tisso Hotspot Grid"
+      "name": "Tisso Hotspot Grid",
+      "blocks": [
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" }
+      ]
     }
   ]
 }
