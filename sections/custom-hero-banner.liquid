@@ -1,6 +1,6 @@
 <div class="custom-hero-container">
 
-  <!-- TOP HEADER SECTION (White-Gray BG + SVG Layer) -->
+  <!-- TOP HEADER SECTION -->
   <div class="hero-top-wrapper">
     <div class="hero-top-svg">
       <img src="{{ 'hero-banner1-bg.svg' | asset_url }}" alt="" loading="eager" width="100%" height="100%">
@@ -24,9 +24,9 @@
     </header>
   </div>
 
-  <!-- LOWER MAIN SECTION (Left Text + Right SVG Illustration) -->
+  <!-- LOWER MAIN SECTION -->
   <div class="hero-lower-banner">
-    <!-- Left Area: Text Content -->
+    <!-- Left Area: Clean Content Area -->
     <div class="hero-left-area">
       <h1 class="hero-heading">{{ section.settings.heading }}</h1>
       <p class="hero-subtext">{{ section.settings.description }}</p>
@@ -36,7 +36,7 @@
       </a>
     </div>
 
-    <!-- Right Area: Line Art Illustration -->
+    <!-- Right Area: SVG Illustration -->
     <div class="hero-right-area">
       <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager" width="100%" height="100%">
     </div>
@@ -71,7 +71,7 @@
   .hero-top-wrapper {
     position: relative;
     width: 100%;
-    height: 390px;
+    height: 380px;
     background-color: #F5F5F5;
     box-sizing: border-box;
   }
@@ -83,12 +83,13 @@
     height: 100%;
     z-index: 1;
     pointer-events: none;
+    overflow: hidden;
   }
 
   .hero-top-svg img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center top;
     display: block;
   }
@@ -119,6 +120,9 @@
     font-weight: 400;
     color: #000000;
     text-align: center;
+    background: rgba(245, 245, 245, 0.85);
+    padding: 4px 12px;
+    border-radius: 4px;
   }
 
   .yellow-cta-btn {
@@ -148,14 +152,14 @@
   .hero-lower-banner {
     position: relative;
     width: 100%;
-    height: 402px;
+    height: 400px;
     background: #FFFFFF;
     display: flex;
     box-sizing: border-box;
   }
 
   .hero-left-area {
-    width: 550px;
+    width: 520px;
     height: 100%;
     padding: 40px 0 0 67px;
     box-sizing: border-box;
@@ -163,6 +167,7 @@
     flex-direction: column;
     justify-content: flex-start;
     z-index: 2;
+    background: #FFFFFF;
   }
 
   .hero-heading {
@@ -180,7 +185,7 @@
     font-size: 20px;
     line-height: 140%;
     color: #000000;
-    max-width: 483px;
+    max-width: 450px;
     margin: 0 0 32px 0;
   }
 
@@ -221,7 +226,7 @@
   .hero-right-area img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     object-position: left top;
     display: block;
   }
