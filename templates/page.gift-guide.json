@@ -26,6 +26,14 @@
     "hotspot_grid": {
       "type": "custom-hotspot-grid",
       "blocks": {
+        "grid_item_DcHQqR": {
+          "type": "grid_item",
+          "settings": {
+            "product": "olive-green-jacket",
+            "hotspot_x": 80,
+            "hotspot_y": 50
+          }
+        },
         "grid_item_JVDTkm": {
           "type": "grid_item",
           "settings": {
@@ -68,6 +76,7 @@
         }
       },
       "block_order": [
+        "grid_item_DcHQqR",
         "grid_item_JVDTkm",
         "grid_item_rfRVpc",
         "grid_item_TxreRj",
