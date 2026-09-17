@@ -241,8 +241,11 @@
                 cellElements.forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
 
-                const cellWidth = this.offsetWidth;
-                const cellLeft = this.offsetLeft;
+                const trackRect = colorTrack.getBoundingClientRect();
+                const optionRect = this.getBoundingClientRect();
+                
+                const cellWidth = optionRect.width;
+                const cellLeft = optionRect.left - trackRect.left;
 
                 slidingPill.style.width = `${cellWidth}px`;
                 slidingPill.style.transform = `translateX(${cellLeft}px)`;
@@ -255,9 +258,11 @@
               cellElements.push(colorOption);
 
               if (index === 0) {
-                setTimeout(() => {
-                  colorOption.click();
-                }, 50);
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    colorOption.click();
+                  });
+                });
               }
             });
           }
