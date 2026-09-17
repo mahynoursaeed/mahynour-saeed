@@ -1,6 +1,6 @@
 <div class="custom-hero-container">
 
-  <!-- TOP HEADER BAR (Clean, solid bar) -->
+  <!-- TOP HEADER -->
   <header class="hero-top-header">
     <div class="hero-brand">
       <a href="/" class="brand-link">{{ section.settings.brand_name }}</a>
@@ -18,15 +18,13 @@
     </div>
   </header>
 
-  <!-- TOP LINE-ART BANNER (Directly below header) -->
+  <!-- TOP VECTOR BANNER -->
   <div class="hero-top-illustration">
     <img src="{{ 'hero-banner1-bg.svg' | asset_url }}" alt="" loading="eager">
   </div>
 
-  <!-- LOWER BANNER WITH OVERLAY TEXT -->
-<!-- LOWER MAIN SECTION -->
+  <!-- LOWER MAIN SECTION -->
   <div class="hero-lower-wrapper">
-    <!-- Clean left content box masking out background art -->
     <div class="hero-left-content">
       <h1 class="hero-heading">{{ section.settings.heading }}</h1>
       <p class="hero-subtext">{{ section.settings.description }}</p>
@@ -36,7 +34,6 @@
       </a>
     </div>
 
-    <!-- Right-aligned vector artwork layer -->
     <div class="hero-right-illustration">
       <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager" width="100%" height="auto">
     </div>
@@ -66,7 +63,7 @@
   }
 
   /* --------------------------------------
-     1. TOP HEADER (Isolated from SVG)
+     1. TOP HEADER
   -------------------------------------- */
   .hero-top-header {
     width: 100%;
@@ -96,10 +93,13 @@
     color: #000000;
   }
 
+  /* --- YELLOW BUTTON (Scrolls to Black on Hover/Active) --- */
   .yellow-cta-btn {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 12px;
     background-color: #FFEE4A;
     color: #000000;
     padding: 8px 16px;
@@ -108,6 +108,32 @@
     letter-spacing: 0.5px;
     text-decoration: none;
     text-transform: uppercase;
+    overflow: hidden;
+    z-index: 1;
+    transition: color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .yellow-cta-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    z-index: -1;
+    transform: translateX(-101%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .yellow-cta-btn:hover,
+  .yellow-cta-btn:active {
+    color: #FFFFFF;
+  }
+
+  .yellow-cta-btn:hover::before,
+  .yellow-cta-btn:active::before {
+    transform: translateX(0);
   }
 
   /* --------------------------------------
@@ -139,7 +165,6 @@
     overflow: hidden;
   }
 
-  /* Left text content card */
   .hero-left-content {
     position: relative;
     z-index: 10;
@@ -150,7 +175,6 @@
     box-sizing: border-box;
   }
 
-  /* Keep heading on one single line */
   .hero-heading {
     font-family: 'Jost', sans-serif;
     font-weight: 600;
@@ -171,7 +195,9 @@
     margin: 0 0 28px 0;
   }
 
+  /* --- BLACK BUTTON (Scrolls to Yellow on Hover/Active) --- */
   .main-cta-btn {
+    position: relative;
     width: 170px;
     height: 44px;
     background-color: #000000;
@@ -186,6 +212,37 @@
     font-weight: 600;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    overflow: hidden;
+    z-index: 1;
+    transition: color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .main-cta-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #FFEE4A;
+    z-index: -1;
+    transform: translateX(-101%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .main-cta-btn:hover,
+  .main-cta-btn:active {
+    color: #000000;
+  }
+
+  .main-cta-btn:hover::before,
+  .main-cta-btn:active::before {
+    transform: translateX(0);
+  }
+
+  .btn-arrow {
+    font-size: 14px;
+    line-height: 1;
   }
 
   /* Right vector artwork container */
