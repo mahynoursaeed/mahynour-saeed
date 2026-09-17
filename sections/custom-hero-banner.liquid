@@ -1,164 +1,267 @@
 <div class="custom-hero-container">
-  <!-- Top Banner Bar -->
-  <div class="hero-top-banner" style="background-image: url('{{ 'hero-banner1-bg.svg' | asset_url }}');">
-    <div class="hero-brand">{{ section.settings.brand_name }}</div>
-    <div class="hero-announcement-content">
-      <span class="announcement-text">{{ section.settings.announcement_text }}</span>
-      <a href="{{ section.settings.top_button_link }}" class="btn-animated top-btn">
-        {{ section.settings.top_button_text }} &rarr;
-      </a>
-    </div>
+
+  <!-- TOP HEADER SECTION (White-Gray Background with SVG Layered Above) -->
+  <div class="hero-top-wrapper">
+    <!-- SVG Illustration Layered Above Background -->
+    <div class="hero-top-svg" style="background-image: url('{{ 'hero-banner1-bg.svg' | asset_url }}');"></div>
+
+    <!-- Header Navigation Bar Content -->
+    <header class="hero-top-header">
+      <div class="hero-brand">
+        <a href="/" class="brand-link">{{ section.settings.brand_name }}</a>
+      </div>
+
+      <div class="hero-announcement">
+        <span>{{ section.settings.announcement_text }}</span>
+      </div>
+
+      <div class="hero-action">
+        <a href="{{ section.settings.top_button_link }}" class="yellow-cta-btn">
+          <span>{{ section.settings.top_button_text }}</span>
+          <span class="btn-arrow">&rarr;</span>
+        </a>
+      </div>
+    </header>
   </div>
 
-  <!-- Lower Banner: Image is set behind the text across the full width -->
-  <div class="hero-lower-banner" style="background-image: url('{{ 'hero-banner2-bg.svg' | asset_url }}');">
-    <div class="hero-text-card">
+  <!-- LOWER MAIN SECTION (Split Left & Right Areas) -->
+  <div class="hero-lower-banner">
+    <!-- Left Area: Clean Text Content -->
+    <div class="hero-left-area">
       <h1 class="hero-heading">{{ section.settings.heading }}</h1>
-      <div class="hero-subtext">{{ section.settings.description }}</div>
-      <a href="{{ section.settings.cta_button_link }}" class="btn-animated main-cta-btn">
-        {{ section.settings.cta_button_text }} &rarr;
+      <p class="hero-subtext">{{ section.settings.description }}</p>
+      <a href="{{ section.settings.cta_button_link }}" class="main-cta-btn">
+        <span>{{ section.settings.cta_button_text }}</span>
+        <span class="btn-arrow">&rarr;</span>
       </a>
     </div>
+
+    <!-- Right Area: SVG Illustration Layer -->
+    <div class="hero-right-area" style="background-image: url('{{ 'hero-banner2-bg.svg' | asset_url }}');"></div>
   </div>
 
-  <!-- Bottom Ticker -->
+  <!-- Bottom Ticker Bar -->
   {% if section.settings.footer_ticker_text != blank %}
     <div class="hero-bottom-ticker">
-      {{ section.settings.footer_ticker_text }}
+      <span>{{ section.settings.footer_ticker_text }}</span>
     </div>
   {% endif %}
+
 </div>
 
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap');
+
   .custom-hero-container {
     width: 100%;
-    background-color: #ffffff;
+    max-width: 1440px;
+    margin: 0 auto;
+    background: #FFFFFF;
+    font-family: 'Jost', sans-serif;
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* --------------------------------------
+     TOP SECTION: White-Gray BG + SVG + Header
+  -------------------------------------- */
+  .hero-top-wrapper {
+    position: relative;
+    width: 100%;
+    height: 390px;
+    background-color: #F5F5F5; /* White-Gray Background */
     box-sizing: border-box;
   }
 
-  /* Top Banner Bar */
-  .hero-top-banner {
+  /* SVG Layered Above the Background */
+  .hero-top-svg {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: 390px;
+    height: 100%;
     background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Top Header Overlay Content */
+  .hero-top-header {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 64px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: 24px 5%;
+    padding: 0 67px;
     box-sizing: border-box;
   }
 
-  .hero-brand {
-    font-size: 20px;
+  .brand-link {
+    font-size: 18px;
     font-weight: 800;
     letter-spacing: 2px;
-    color: #000;
+    color: #000000;
+    text-decoration: none;
+    text-transform: uppercase;
   }
 
-  .hero-announcement-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .announcement-text {
+  .hero-announcement {
     font-size: 14px;
-    color: #000;
+    font-weight: 400;
+    color: #000000;
+    text-align: center;
   }
 
-  /* Lower Section with Background Behind Text */
-  .hero-lower-banner {
-    width: 100%;
-    min-height: 402px;
-    background-size: cover;
-    background-position: left center;
-    background-repeat: no-repeat;
-    display: flex;
+  .yellow-cta-btn {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #FFF03F;
+    color: #000000;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .yellow-cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  /* --------------------------------------
+     LOWER SECTION: Left & Right Split Areas
+  -------------------------------------- */
+  .hero-lower-banner {
     position: relative;
+    width: 100%;
+    height: 402px;
+    background: #FFFFFF;
+    display: flex;
     box-sizing: border-box;
   }
 
-  /* Transparent Text Container allows the background image to show through */
-  .hero-text-card {
-    width: 40%;
-    background: transparent;
-    padding: 40px 0 40px 5%;
+  /* Left Area: Text Content */
+  .hero-left-area {
+    width: 550px;
+    height: 100%;
+    padding: 40px 0 0 67px;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    box-sizing: border-box;
+    justify-content: flex-start;
     z-index: 2;
   }
 
   .hero-heading {
-    font-size: 48px;
-    font-weight: 700;
-    margin: 0 0 16px 0;
-    line-height: 1.1;
+    font-family: 'Jost', sans-serif;
+    font-weight: 500;
+    font-size: 70px;
+    line-height: 100%;
     color: #000000;
+    margin: 0 0 24px 0;
   }
 
   .hero-subtext {
-    font-size: 14px;
-    color: #333333;
-    margin-bottom: 28px;
-    line-height: 1.6;
-  }
-
-  /* Buttons & Hover Animation */
-  .btn-animated {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 24px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-decoration: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .top-btn {
-    background-color: #f6e05e;
-    color: #000;
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 140%;
+    color: #000000;
+    max-width: 483px;
+    margin: 0 0 32px 0;
   }
 
   .main-cta-btn {
+    width: 220px;
+    height: 50px;
     background-color: #000000;
-    color: #ffffff;
-    width: fit-content;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    box-sizing: border-box;
+    text-decoration: none;
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    text-transform: uppercase;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-  .btn-animated:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  .main-cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
-  /* Bottom Ticker */
+  .btn-arrow {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  /* Right Area: SVG Illustration Layer */
+  .hero-right-area {
+    flex-grow: 1;
+    height: 100%;
+    background-size: cover;
+    background-position: left top;
+    background-repeat: no-repeat;
+  }
+
+  /* --------------------------------------
+     BOTTOM TICKER
+  -------------------------------------- */
   .hero-bottom-ticker {
+    width: 100%;
     text-align: center;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 1px;
-    padding: 12px 0;
-    border-top: 1px solid #eaeaea;
-    background: #fff;
+    padding: 14px 0;
+    border-top: 1px solid #EAEAEA;
+    background-color: #FFFFFF;
+    text-transform: uppercase;
   }
 
-  @media (max-width: 768px) {
-    .hero-top-banner {
+  /* Responsive Adjustments */
+  @media (max-width: 1024px) {
+    .hero-top-header {
       flex-direction: column;
-      align-items: center;
       height: auto;
-      min-height: 250px;
-      gap: 15px;
+      gap: 12px;
+      padding: 20px;
     }
-    .hero-text-card {
+
+    .hero-lower-banner {
+      flex-direction: column;
+      height: auto;
+    }
+
+    .hero-left-area {
       width: 100%;
-      padding: 40px 20px;
+      padding: 30px 20px;
+    }
+
+    .hero-right-area {
+      width: 100%;
+      height: 300px;
+    }
+
+    .hero-heading {
+      font-size: 48px;
+    }
+
+    .hero-subtext {
+      font-size: 16px;
     }
   }
 </style>
@@ -172,7 +275,7 @@
     { "type": "text", "id": "top_button_text", "label": "Top Button Text", "default": "CHOOSE GIFT" },
     { "type": "url", "id": "top_button_link", "label": "Top Button Link" },
     { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "The Gift Guide" },
-    { "type": "richtext", "id": "description", "label": "Description", "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>" },
+    { "type": "text", "id": "description", "label": "Description", "default": "Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season." },
     { "type": "text", "id": "cta_button_text", "label": "CTA Button Text", "default": "SHOP NOW" },
     { "type": "url", "id": "cta_button_link", "label": "CTA Button Link" },
     { "type": "text", "id": "footer_ticker_text", "label": "Footer Ticker Text", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL" }
