@@ -1,0 +1,206 @@
+{{ 'custom-hotspot.js' | asset_url | script_tag }}
+
+<div class="hotspot-grid-wrapper">
+  <h2 class="grid-title">{{ section.settings.section_title }}</h2>
+
+  <div class="photo-grid">
+    {% for block in section.blocks %}
+      <div class="grid-card" {{ block.shopify_attributes }}>
+        {% if block.settings.image != blank %}
+          <img src="{{ block.settings.image | image_url: width: 800 }}" alt="{{ block.settings.popup_title | escape }}" loading="lazy" class="grid-img">
+        {% else %}
+          {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+        {% endif %}
+
+        <!-- Hotspot Plus Button -->
+        <button 
+          type="button"
+          class="hotspot-pin" 
+          style="top: {{ block.settings.hotspot_y }}%; left: {{ block.settings.hotspot_x }}%;"
+          data-title="{{ block.settings.popup_title | escape }}"
+          data-price="{{ block.settings.popup_price | escape }}"
+          data-image="{% if block.settings.image != blank %}{{ block.settings.image | image_url: width: 500 }}{% endif %}"
+          data-description="{{ block.settings.popup_description | escape }}"
+          aria-label="View item details"
+        >
+          +
+        </button>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Modal Popup (Vanilla JS Controlled) -->
+<div id="hotspot-modal-overlay" class="modal-overlay" aria-hidden="true">
+  <div class="modal-box">
+    <button type="button" id="modal-close-trigger" class="modal-close-btn">&times;</button>
+    <div class="modal-content">
+      <img id="modal-target-img" src="" alt="Product Image" class="modal-img">
+      <div class="modal-info">
+        <h3 id="modal-target-title"></h3>
+        <p id="modal-target-price" class="modal-price"></p>
+        <p id="modal-target-desc" class="modal-desc"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hotspot-grid-wrapper {
+    padding: 60px 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .grid-title {
+    font-size: 32px;
+    margin-bottom: 30px;
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .photo-grid {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+
+  .grid-card {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    background-color: #eee;
+  }
+
+  .grid-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Hotspot Pin Button */
+  .hotspot-pin {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
+  }
+
+  .hotspot-pin:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+
+  /* Modal Styling */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 9999;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal-box {
+    background: #fff;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    border-radius: 4px;
+  }
+
+  .modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+  }
+
+  .modal-content {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .modal-img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+  }
+
+  .modal-price {
+    font-weight: bold;
+    color: #111;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Tisso Hotspot Grid",
+  "settings": [
+    {
+      "type": "text",
+      "id": "section_title",
+      "label": "Heading",
+      "default": "Tisso vision in the wild"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "grid_item",
+      "name": "Grid Image & Hotspot",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Grid Image" },
+        { "type": "range", "id": "hotspot_x", "min": 5, "max": 95, "step": 1, "unit": "%", "label": "Hotspot X Position", "default": 50 },
+        { "type": "range", "id": "hotspot_y", "min": 5, "max": 95, "step": 1, "unit": "%", "label": "Hotspot Y Position", "default": 50 },
+        { "type": "text", "id": "popup_title", "label": "Product Title", "default": "Featured Item" },
+        { "type": "text", "id": "popup_price", "label": "Product Price", "default": "$120.00" },
+        { "type": "textarea", "id": "popup_description", "label": "Product Description", "default": "High quality product crafted with sustainable materials." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tisso Hotspot Grid",
+      "blocks": [
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

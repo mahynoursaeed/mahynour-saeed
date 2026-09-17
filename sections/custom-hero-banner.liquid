@@ -1,0 +1,139 @@
+<div class="custom-hero-banner">
+  <!-- Announcement Header -->
+  <div class="hero-announcement">
+    <div class="announcement-text">{{ section.settings.announcement_text }}</div>
+    <a href="{{ section.settings.top_button_link }}" class="btn-animated top-btn">
+      {{ section.settings.top_button_text }} &rarr;
+    </a>
+  </div>
+
+  <!-- Hero Content Block -->
+  <div class="hero-main-content">
+    <h1 class="hero-heading">{{ section.settings.heading }}</h1>
+    <div class="hero-subtext">{{ section.settings.description }}</div>
+    <a href="{{ section.settings.cta_button_link }}" class="btn-animated main-cta-btn">
+      {{ section.settings.cta_button_text }} &rarr;
+    </a>
+  </div>
+</div>
+
+<style>
+  .custom-hero-banner {
+    width: 100%;
+    background-color: #f9f9f9;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+
+  .hero-announcement {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 5%;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .announcement-text {
+    font-size: 14px;
+    color: #333;
+  }
+
+  .hero-main-content {
+    padding: 80px 5%;
+    max-width: 600px;
+  }
+
+  .hero-heading {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.1;
+  }
+
+  .hero-subtext {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+    line-height: 1.5;
+  }
+
+  /* Animated Buttons Requirement */
+  .btn-animated {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+  }
+
+  .top-btn {
+    background-color: #f6e05e;
+    color: #000;
+  }
+
+  .main-cta-btn {
+    background-color: #000;
+    color: #fff;
+  }
+
+  .btn-animated:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Custom Hero Banner",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "announcement_text",
+      "label": "Announcement Text",
+      "default": "Find the ideal gift for your loved ones."
+    },
+    {
+      "type": "text",
+      "id": "top_button_text",
+      "label": "Top Button Label",
+      "default": "CHOOSE GIFT"
+    },
+    {
+      "type": "url",
+      "id": "top_button_link",
+      "label": "Top Button Link"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The Gift Guide"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>"
+    },
+    {
+      "type": "text",
+      "id": "cta_button_text",
+      "label": "CTA Button Label",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "cta_button_link",
+      "label": "CTA Button Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Hero Banner"
+    }
+  ]
+}
+{% endschema %}

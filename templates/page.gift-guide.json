@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "hero_banner": {
+      "type": "custom-hero-banner",
+      "settings": {}
+    },
+    "hotspot_grid": {
+      "type": "custom-hotspot-grid",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero_banner",
+    "hotspot_grid"
+  ]
+}
