@@ -24,18 +24,21 @@
   </div>
 
   <!-- LOWER BANNER WITH OVERLAY TEXT -->
+<!-- LOWER MAIN SECTION -->
   <div class="hero-lower-wrapper">
-    <div class="hero-bg-illustration">
-      <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager">
-    </div>
-
-    <div class="hero-text-overlay">
+    <!-- Clean left content box masking out background art -->
+    <div class="hero-left-content">
       <h1 class="hero-heading">{{ section.settings.heading }}</h1>
       <p class="hero-subtext">{{ section.settings.description }}</p>
       <a href="{{ section.settings.cta_button_link }}" class="main-cta-btn">
         <span>{{ section.settings.cta_button_text }}</span>
         <span class="btn-arrow">&rarr;</span>
       </a>
+    </div>
+
+    <!-- Right-aligned vector artwork layer -->
+    <div class="hero-right-illustration">
+      <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager" width="100%" height="auto">
     </div>
   </div>
 
@@ -55,7 +58,7 @@
     width: 100%;
     max-width: 1440px;
     margin: 0 auto;
-    background: #FFFFFF;
+    background: #F7F7F7;
     font-family: 'Jost', sans-serif;
     position: relative;
     box-sizing: border-box;
@@ -63,11 +66,11 @@
   }
 
   /* --------------------------------------
-     TOP HEADER (Solid White/Gray Bar)
+     1. TOP HEADER (Isolated from SVG)
   -------------------------------------- */
   .hero-top-header {
     width: 100%;
-    height: 60px;
+    height: 56px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -75,11 +78,11 @@
     box-sizing: border-box;
     background-color: #F7F7F7;
     position: relative;
-    z-index: 10;
+    z-index: 20;
   }
 
   .brand-link {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 800;
     letter-spacing: 1.5px;
     color: #000000;
@@ -96,10 +99,10 @@
   .yellow-cta-btn {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     background-color: #FFEE4A;
     color: #000000;
-    padding: 8px 18px;
+    padding: 8px 16px;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -108,12 +111,14 @@
   }
 
   /* --------------------------------------
-     TOP ILLUSTRATION SECTION
+     2. TOP VECTOR ARTWORK
   -------------------------------------- */
   .hero-top-illustration {
     width: 100%;
     background-color: #F7F7F7;
     line-height: 0;
+    position: relative;
+    z-index: 1;
   }
 
   .hero-top-illustration img {
@@ -123,76 +128,81 @@
   }
 
   /* --------------------------------------
-     LOWER MAIN BANNER & TEXT OVERLAY
+     3. LOWER BANNER SECTION
   -------------------------------------- */
   .hero-lower-wrapper {
     position: relative;
     width: 100%;
-    min-height: 420px;
+    display: flex;
+    align-items: flex-start;
     background-color: #FFFFFF;
+    overflow: hidden;
   }
 
-  .hero-bg-illustration {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-  }
-
-  .hero-bg-illustration img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: right center;
-    display: block;
-  }
-
-  .hero-text-overlay {
+  /* Left text content card */
+  .hero-left-content {
     position: relative;
-    z-index: 2;
-    max-width: 460px;
-    padding: 60px 0 60px 50px;
-    background: #FFFFFF; /* Masks out line art behind the text block */
+    z-index: 10;
+    width: 42%;
+    min-width: 480px;
+    padding: 40px 0 60px 40px;
+    background: #FFFFFF;
+    box-sizing: border-box;
   }
 
+  /* Keep heading on one single line */
   .hero-heading {
     font-family: 'Jost', sans-serif;
     font-weight: 600;
-    font-size: 64px;
-    line-height: 1.05;
+    font-size: 56px;
+    line-height: 1;
     color: #000000;
     margin: 0 0 20px 0;
+    white-space: nowrap;
   }
 
   .hero-subtext {
     font-family: 'Jost', sans-serif;
     font-weight: 400;
-    font-size: 15px;
-    line-height: 1.4;
+    font-size: 14px;
+    line-height: 1.45;
     color: #000000;
+    max-width: 380px;
     margin: 0 0 28px 0;
   }
 
   .main-cta-btn {
-    width: 180px;
-    height: 46px;
+    width: 170px;
+    height: 44px;
     background-color: #000000;
     color: #FFFFFF;
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 18px;
     box-sizing: border-box;
     text-decoration: none;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
     letter-spacing: 0.5px;
     text-transform: uppercase;
   }
 
+  /* Right vector artwork container */
+  .hero-right-illustration {
+    width: 58%;
+    line-height: 0;
+    background-color: #FFFFFF;
+  }
+
+  .hero-right-illustration img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
   /* --------------------------------------
-     BOTTOM TICKER
+     4. BOTTOM TICKER
   -------------------------------------- */
   .hero-bottom-ticker {
     width: 100%;
@@ -205,27 +215,37 @@
     background-color: #F7F7F7;
     text-transform: uppercase;
     position: relative;
-    z-index: 5;
+    z-index: 10;
   }
 
   /* --------------------------------------
      RESPONSIVE BREAKPOINTS
   -------------------------------------- */
-  @media (max-width: 900px) {
+  @media (max-width: 1024px) {
+    .hero-heading {
+      white-space: normal;
+      font-size: 44px;
+    }
+
+    .hero-left-content {
+      width: 100%;
+      min-width: unset;
+      padding: 30px 20px;
+    }
+
+    .hero-lower-wrapper {
+      flex-direction: column;
+    }
+
+    .hero-right-illustration {
+      width: 100%;
+    }
+
     .hero-top-header {
       flex-direction: column;
       height: auto;
       gap: 10px;
       padding: 15px;
-    }
-
-    .hero-text-overlay {
-      max-width: 100%;
-      padding: 30px 20px;
-    }
-
-    .hero-heading {
-      font-size: 42px;
     }
   }
 </style>
