@@ -81,6 +81,7 @@
     let currentProduct = null;
     let selectedOptions = {};
 
+    // Map color option names to HEX values
     const colorHexMap = {
       'blue': '#0F4C81',
       'black': '#000000',
@@ -89,8 +90,18 @@
       'green': '#2A9D8F',
       'grey': '#9E9E9E',
       'gray': '#9E9E9E',
-      'navy': '#000080'
+      'navy': '#000080',
+      'yellow': '#E9C46A',
+      'pink': '#F4A261',
+      'beige': '#F5F5DC',
+      'brown': '#8B4513'
     };
+
+    function getColorHex(colorName) {
+      if (!colorName) return '#000000';
+      const normalized = colorName.trim().toLowerCase();
+      return colorHexMap[normalized] || normalized;
+    }
 
     function getFormattedImageUrl(rawUrl) {
       if (!rawUrl) return 'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image-1.png';
@@ -210,8 +221,7 @@
 
               const accentBar = document.createElement('span');
               accentBar.className = 'color-accent-bar';
-              const normalizedColor = val.trim().toLowerCase();
-              accentBar.style.backgroundColor = colorHexMap[normalizedColor] || normalizedColor;
+              accentBar.style.backgroundColor = getColorHex(val);
               colorOption.appendChild(accentBar);
 
               const textSpan = document.createElement('span');
@@ -549,7 +559,7 @@
     border-right: none;
   }
 
-  /* Vertical Color Strip */
+  /* Vertical Color Strip (Always on the left edge of each cell) */
   .color-accent-bar {
     width: 4px;
     height: 100%;
@@ -569,7 +579,7 @@
     transition: color 0.2s ease;
   }
 
-  /* Active/Selected State: Black Background Fill & White Text */
+  /* Selected Option State: Fill background with black and convert text to white */
   .color-option-cell.selected {
     background-color: #000 !important;
   }
