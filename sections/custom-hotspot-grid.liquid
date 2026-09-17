@@ -231,10 +231,12 @@
               colorOption.appendChild(textSpan);
 
               colorOption.addEventListener('click', function() {
+                // Clear selection state from all options
                 colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
                   c.classList.remove('selected');
                 });
 
+                // Apply selected state to clicked cell (turns background black)
                 this.classList.add('selected');
 
                 selectedOptions[optName] = val;
@@ -243,6 +245,8 @@
 
               colorTrack.appendChild(colorOption);
             });
+
+            // Do NOT auto-click the first cell anymore, keeping them unselected (white) initially
           }
 
           optionWrapper.appendChild(colorTrack);
@@ -539,7 +543,7 @@
     box-sizing: border-box;
   }
 
-  /* Base Unselected Color Cell with smooth slide transition */
+  /* Base Unselected Color Cell */
   .color-option-cell {
     flex: 1;
     display: flex;
@@ -553,7 +557,7 @@
     background-color: #ffffff;
     color: #111111;
     overflow: hidden;
-    transition: background-color 0.25s ease, color 0.25s ease;
+    transition: color 0.15s ease;
   }
 
   .color-option-cell:last-child {
@@ -579,7 +583,7 @@
     position: relative;
   }
 
-  /* Selected State: Smoothly transitions background to black */
+  /* Selected State: Black background with White text */
   .color-option-cell.selected {
     background-color: #000000 !important;
     color: #ffffff !important;
@@ -657,5 +661,85 @@
     padding: 14px 16px;
     background: #000;
     color: #fff;
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .modal-atc-btn:disabled {
+    background: #dcdcdc;
+    color: #888;
+    cursor: not-allowed;
   }
 </style>
+
+{% schema %}
+{
+  "name": "Tisso Hotspot Grid",
+  "settings": [
+    {
+      "type": "text",
+      "id": "section_title",
+      "label": "Heading",
+      "default": "Tisso vision in the wild"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "grid_item",
+      "name": "Product Block",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Select Product"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "Custom Image Override (Optional)"
+        },
+        {
+          "type": "range",
+          "id": "hotspot_x",
+          "min": 5,
+          "max": 95,
+          "step": 1,
+          "unit": "%",
+          "label": "Hotspot Horizontal (X) Position",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "hotspot_y",
+          "min": 5,
+          "max": 95,
+          "step": 1,
+          "unit": "%",
+          "label": "Hotspot Vertical (Y) Position",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tisso Hotspot Grid",
+      "blocks": [
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" },
+        { "type": "grid_item" }
+      ]
+    }
+  ]
+}
+{% endschema %}
