@@ -81,7 +81,7 @@
     let currentProduct = null;
     let selectedOptions = {};
 
-    // Map color option names to Hex values
+    // Hex mapping for store colors
     const colorHexMap = {
       'black': '#000000',
       'white': '#FFFFFF',
@@ -91,6 +91,7 @@
       'blue': '#0F4C81',
       'navy': '#000080',
       'green': '#2A9D8F',
+      'olive': '#556B2F',
       'yellow': '#E9C46A',
       'pink': '#F4A261',
       'beige': '#F5F5DC',
@@ -103,10 +104,15 @@
       return colorHexMap[normalized] || normalized;
     }
 
-    function isLightColor(colorName) {
-      if (!colorName) return false;
-      const norm = colorName.trim().toLowerCase();
-      return norm === 'white' || norm === '#ffffff' || norm === 'beige' || norm === 'yellow';
+    // Extract primary color from title if product is tagged/named by color
+    function extractColorFromTitle(title) {
+      if (!title) return null;
+      const lowerTitle = title.toLowerCase();
+      const knownColors = ['blue', 'red', 'green', 'olive', 'yellow', 'navy', 'white', 'black', 'pink', 'brown', 'grey', 'gray'];
+      for (const color of knownColors) {
+        if (lowerTitle.includes(color)) return color;
+      }
+      return null;
     }
 
     function getFormattedImageUrl(rawUrl) {
@@ -196,10 +202,12 @@
         return 0;
       });
 
+      const titleColor = extractColorFromTitle(product.title);
+
       sortedOptions.forEach((optionObj) => {
         const idx = product.options.findIndex(o => (typeof o === 'string' ? o : o.name) === (typeof optionObj === 'string' ? optionObj : optionObj.name));
         const optName = typeof optionObj === 'string' ? optionObj : optionObj.name;
-        const optionValues = typeof optionObj === 'object' && optionObj.values ? optionObj.values : [...new Set(product.variants.map(v => v.options[idx]))];
+        let optionValues = typeof optionObj === 'object' && optionObj.values ? optionObj.values : [...new Set(product.variants.map(v => v.options[idx]))];
 
         const optionWrapper = document.createElement('div');
         optionWrapper.className = 'modal-option-group';
@@ -225,9 +233,12 @@
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
+              // Determine vertical strip color (uses title color fallback if variant value is generic black/white)
+              const colorForAccent = (titleColor && val.toLowerCase() === 'black') ? titleColor : val;
+
               const accentBar = document.createElement('span');
               accentBar.className = 'color-accent-bar';
-              accentBar.style.backgroundColor = getColorHex(val);
+              accentBar.style.backgroundColor = getColorHex(colorForAccent);
               colorOption.appendChild(accentBar);
 
               const textSpan = document.createElement('span');
@@ -236,15 +247,13 @@
               colorOption.appendChild(textSpan);
 
               colorOption.addEventListener('click', function() {
+                // Reset all options to unselected state
                 colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
                   c.classList.remove('selected');
-                  c.style.backgroundColor = '#ffffff';
-                  c.querySelector('.color-option-text').style.color = '#111111';
                 });
 
+                // Apply selected state (black background via CSS class)
                 this.classList.add('selected');
-                this.style.backgroundColor = getColorHex(val);
-                this.querySelector('.color-option-text').style.color = isLightColor(val) ? '#111111' : '#ffffff';
 
                 selectedOptions[optName] = val;
                 updateVariantSelection();
@@ -526,7 +535,7 @@
     margin-bottom: 6px;
   }
 
-  /* Color Track Base */
+  /* Color Track Container */
   .color-picker-track {
     position: relative;
     border: 1px solid #111;
@@ -554,7 +563,7 @@
     box-sizing: border-box;
   }
 
-  /* Multi-Option Cell */
+  /* Base Unselected Color Cell */
   .color-option-cell {
     flex: 1;
     display: flex;
@@ -565,15 +574,16 @@
     cursor: pointer;
     user-select: none;
     border-right: 1px solid #111;
-    background-color: #fff;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    background-color: #ffffff;
+    color: #111111;
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   .color-option-cell:last-child {
     border-right: none;
   }
 
-  /* Vertical Color Strip */
+  /* Vertical Accent Color Strip */
   .color-accent-bar {
     width: 4px;
     height: 100%;
@@ -586,10 +596,15 @@
 
   .color-option-text {
     font-size: 14px;
-    color: #111;
     margin-left: 6px;
     z-index: 2;
-    transition: color 0.2s ease;
+    color: inherit;
+  }
+
+  /* Selected State: Black background with White text */
+  .color-option-cell.selected {
+    background-color: #000000 !important;
+    color: #ffffff !important;
   }
 
   /* Custom Size Dropdown */
