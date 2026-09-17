@@ -216,12 +216,7 @@
             colorTrack.appendChild(singleCell);
             selectedOptions[optName] = optionValues[0];
           } else {
-            // Create sliding highlight pill element
-            const sliderPill = document.createElement('div');
-            sliderPill.className = 'color-slider-pill';
-            colorTrack.appendChild(sliderPill);
-
-            optionValues.forEach((val, index) => {
+            optionValues.forEach((val) => {
               const colorOption = document.createElement('div');
               colorOption.className = 'color-option-cell';
 
@@ -236,18 +231,13 @@
               colorOption.appendChild(textSpan);
 
               colorOption.addEventListener('click', function() {
+                // Clear selection state from all options
                 colorTrack.querySelectorAll('.color-option-cell').forEach(c => {
                   c.classList.remove('selected');
                 });
 
+                // Apply selected state to clicked cell (turns background black)
                 this.classList.add('selected');
-
-                // Compute position and width for sliding pill
-                const totalCells = optionValues.length;
-                const percentWidth = 100 / totalCells;
-                sliderPill.style.width = `${percentWidth}%`;
-                sliderPill.style.left = `${index * percentWidth}%`;
-                sliderPill.classList.add('active');
 
                 selectedOptions[optName] = val;
                 updateVariantSelection();
@@ -255,6 +245,8 @@
 
               colorTrack.appendChild(colorOption);
             });
+
+            // Do NOT auto-click the first cell anymore, keeping them unselected (white) initially
           }
 
           optionWrapper.appendChild(colorTrack);
@@ -531,25 +523,10 @@
     box-sizing: border-box;
     overflow: hidden;
     height: 42px;
+  }
+
+  .color-picker-track.multi-option {
     display: flex;
-  }
-
-  /* Sliding Highlight Pill Element */
-  .color-slider-pill {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    background-color: #000000;
-    z-index: 2;
-    transition: left 0.3s cubic-bezier(0.25, 1, 0.5, 1), width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-    pointer-events: none;
-    opacity: 0;
-  }
-
-  .color-slider-pill.active {
-    opacity: 1;
   }
 
   /* Single Option Cell */
@@ -566,7 +543,7 @@
     box-sizing: border-box;
   }
 
-  /* Base Color Cell */
+  /* Base Unselected Color Cell */
   .color-option-cell {
     flex: 1;
     display: flex;
@@ -577,11 +554,10 @@
     cursor: pointer;
     user-select: none;
     border-right: 1px solid #111;
-    background-color: transparent;
+    background-color: #ffffff;
     color: #111111;
     overflow: hidden;
-    z-index: 3;
-    transition: color 0.3s ease;
+    transition: color 0.15s ease;
   }
 
   .color-option-cell:last-child {
@@ -596,19 +572,20 @@
     left: 0;
     top: 0;
     bottom: 0;
-    z-index: 4;
+    z-index: 3;
   }
 
   .color-option-text {
     font-size: 14px;
     margin-left: 6px;
-    z-index: 4;
+    z-index: 3;
     color: inherit;
     position: relative;
   }
 
-  /* Selected State text color flip */
+  /* Selected State: Black background with White text */
   .color-option-cell.selected {
+    background-color: #000000 !important;
     color: #ffffff !important;
   }
 
