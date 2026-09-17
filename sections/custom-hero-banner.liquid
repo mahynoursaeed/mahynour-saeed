@@ -2,7 +2,9 @@
 
   <!-- TOP HEADER SECTION (White-Gray BG + SVG Layer) -->
   <div class="hero-top-wrapper">
-    <div class="hero-top-svg"></div>
+    <div class="hero-top-svg">
+      <img src="{{ 'hero-banner1-bg.svg' | asset_url }}" alt="" loading="eager" width="100%" height="100%">
+    </div>
 
     <header class="hero-top-header">
       <div class="hero-brand">
@@ -35,7 +37,9 @@
     </div>
 
     <!-- Right Area: Line Art Illustration -->
-    <div class="hero-right-area"></div>
+    <div class="hero-right-area">
+      <img src="{{ 'hero-banner2-bg.svg' | asset_url }}" alt="Gift Guide Illustration" loading="eager" width="100%" height="100%">
+    </div>
   </div>
 
   <!-- Bottom Ticker -->
@@ -77,12 +81,16 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    background-image: url("{{ 'hero-banner1-bg.svg' | asset_url }}");
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
     z-index: 1;
     pointer-events: none;
+  }
+
+  .hero-top-svg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
   }
 
   .hero-top-header {
@@ -207,10 +215,15 @@
   .hero-right-area {
     flex-grow: 1;
     height: 100%;
-    background-image: url("{{ 'hero-banner2-bg.svg' | asset_url }}");
-    background-size: cover;
-    background-position: left top;
-    background-repeat: no-repeat;
+    overflow: hidden;
+  }
+
+  .hero-right-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left top;
+    display: block;
   }
 
   /* --------------------------------------
