@@ -11,11 +11,72 @@
   "sections": {
     "hero_banner": {
       "type": "custom-hero-banner",
-      "settings": {}
+      "settings": {
+        "brand_name": "TISSO VISON",
+        "announcement_text": "Find the ideal gift for your loved ones.",
+        "top_button_text": "CHOOSE GIFT",
+        "top_button_link": "",
+        "heading": "The Gift Guide",
+        "description": "Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.",
+        "cta_button_text": "SHOP NOW",
+        "cta_button_link": "",
+        "footer_ticker_text": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL"
+      }
     },
     "hotspot_grid": {
       "type": "custom-hotspot-grid",
-      "settings": {}
+      "blocks": {
+        "grid_item_JVDTkm": {
+          "type": "grid_item",
+          "settings": {
+            "product": "dark-denim-top",
+            "hotspot_x": 50,
+            "hotspot_y": 50
+          }
+        },
+        "grid_item_rfRVpc": {
+          "type": "grid_item",
+          "settings": {
+            "product": "classic-leather-jacket",
+            "hotspot_x": 43,
+            "hotspot_y": 64
+          }
+        },
+        "grid_item_TxreRj": {
+          "type": "grid_item",
+          "settings": {
+            "product": "chequered-red-shirt",
+            "hotspot_x": 50,
+            "hotspot_y": 50
+          }
+        },
+        "grid_item_t66QCb": {
+          "type": "grid_item",
+          "settings": {
+            "product": "blue-silk-tuxedo",
+            "hotspot_x": 78,
+            "hotspot_y": 50
+          }
+        },
+        "grid_item_QwyUYN": {
+          "type": "grid_item",
+          "settings": {
+            "product": "black-leather-bag",
+            "hotspot_x": 54,
+            "hotspot_y": 62
+          }
+        }
+      },
+      "block_order": [
+        "grid_item_JVDTkm",
+        "grid_item_rfRVpc",
+        "grid_item_TxreRj",
+        "grid_item_t66QCb",
+        "grid_item_QwyUYN"
+      ],
+      "settings": {
+        "section_title": "Tisso vision in the wild"
+      }
     }
   },
   "order": [
