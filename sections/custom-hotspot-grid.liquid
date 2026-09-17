@@ -1,108 +1,70 @@
+{{ 'custom-hotspot.js' | asset_url | script_tag }}
+
 <div class="hotspot-grid-wrapper">
-  {% if section.settings.section_title != blank %}
-    <h2 class="grid-title">{{ section.settings.section_title }}</h2>
-  {% endif %}
+  <h2 class="grid-title">{{ section.settings.section_title }}</h2>
+
+  {% liquid
+    if section.settings.collection != blank
+      assign catalog_products = section.settings.collection.products
+    else
+      assign catalog_products = collections.all.products
+    endif
+  %}
 
   <div class="photo-grid">
-    {% for block in section.blocks %}
-      {% assign card_product = block.settings.product %}
-      
-      <div class="grid-card" {{ block.shopify_attributes }}>
-        {% comment %} Display Custom Image if picked, otherwise fallback to Product Featured Image {% endcomment %}
-        {% if block.settings.custom_image != blank %}
-          <img src="{{ block.settings.custom_image | image_url: width: 800 }}" alt="{{ card_product.title | escape }}" loading="lazy" class="grid-img">
-        {% elsif card_product != blank and card_product.featured_image != blank %}
-          <img src="{{ card_product.featured_image | image_url: width: 800 }}" alt="{{ card_product.title | escape }}" loading="lazy" class="grid-img">
+    {% for product in catalog_products limit: section.settings.products_to_show %}
+      <div class="grid-card">
+        {% if product.featured_image != blank %}
+          <img src="{{ product.featured_image | image_url: width: 800 }}" alt="{{ product.title | escape }}" loading="lazy" class="grid-img">
         {% else %}
           {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
         {% endif %}
 
-        {% if card_product != blank %}
-          <!-- Hotspot Plus Button -->
-          <button 
-            type="button" 
-            class="hotspot-pin" 
-            style="top: {{ block.settings.hotspot_y }}%; left: {{ block.settings.hotspot_x }}%;"
-            data-product-handle="{{ card_product.handle }}"
-            aria-label="View {{ card_product.title | escape }} details"
-          >
-            +
-          </button>
-
-          <!-- Hidden JSON containing all dynamic Shopify product variant details -->
-          <script type="application/json" id="ProductJson-{{ card_product.handle }}">
-            {
-              "id": {{ card_product.id | json }},
-              "title": {{ card_product.title | json }},
-              "price": {{ card_product.price | money | json }},
-              "description": {{ card_product.description | strip_html | truncatewords: 25 | json }},
-              "featured_image": {{ card_product.featured_image | image_url: width: 300 | json }},
-              "options": {{ card_product.options_with_values | json }},
-              "variants": [
-                {% for variant in card_product.variants %}
-                  {
-                    "id": {{ variant.id }},
-                    "title": {{ variant.title | json }},
-                    "available": {{ variant.available }},
-                    "options": {{ variant.options | json }},
-                    "price": {{ variant.price | money | json }}
-                  }{% unless forloop.last %},{% endunless %}
-                {% endfor %}
-              ]
-            }
-          </script>
-        {% endif %}
+        <!-- Hotspot Plus Button -->
+        <button 
+          type="button"
+          class="hotspot-pin" 
+          style="top: {{ section.settings.hotspot_y }}%; left: {{ section.settings.hotspot_x }}%;"
+          data-title="{{ product.title | escape }}"
+          data-price="{{ product.price | money }}"
+          data-image="{% if product.featured_image != blank %}{{ product.featured_image | image_url: width: 500 }}{% endif %}"
+          data-description="{{ product.description | strip_html | truncate: 120 | escape }}"
+          aria-label="View item details"
+        >
+          +
+        </button>
       </div>
+    {% else %}
+      <p>No products found in catalog.</p>
     {% endfor %}
   </div>
 </div>
 
-<!-- Dynamic Modal Popup -->
+<!-- Modal Popup (Vanilla JS Controlled) -->
 <div id="hotspot-modal-overlay" class="modal-overlay" aria-hidden="true">
   <div class="modal-box">
-    <button type="button" id="modal-close-trigger" class="modal-close-btn" aria-label="Close modal">&times;</button>
-    
-    <div class="modal-body-wrapper">
-      <div class="modal-top-content">
-        <img id="modal-target-img" src="" alt="" class="modal-img">
-        <div class="modal-info">
-          <h3 id="modal-target-title" class="modal-title"></h3>
-          <p id="modal-target-price" class="modal-price"></p>
-          <p id="modal-target-desc" class="modal-desc"></p>
-        </div>
+    <button type="button" id="modal-close-trigger" class="modal-close-btn">&times;</button>
+    <div class="modal-content">
+      <img id="modal-target-img" src="" alt="Product Image" class="modal-img">
+      <div class="modal-info">
+        <h3 id="modal-target-title"></h3>
+        <p id="modal-target-price" class="modal-price"></p>
+        <p id="modal-target-desc" class="modal-desc"></p>
       </div>
-
-      <!-- AJAX Form for Adding Selected Variant to Cart -->
-      <form id="hotspot-add-to-cart-form" class="modal-form">
-        <input type="hidden" name="id" id="modal-selected-variant-id" value="">
-        
-        <!-- Dynamic Variant Selectors (Color / Size) -->
-        <div id="modal-variants-container" class="variants-container"></div>
-
-        <button type="submit" id="modal-submit-btn" class="modal-add-btn">
-          <span>ADD TO CART</span>
-          <span class="btn-arrow">&rarr;</span>
-        </button>
-      </form>
     </div>
   </div>
 </div>
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
-
   .hotspot-grid-wrapper {
     padding: 60px 5%;
-    max-width: 1337px;
+    max-width: 1200px;
     margin: 0 auto;
-    font-family: 'Jost', sans-serif;
   }
 
   .grid-title {
-    font-size: 36px;
-    font-weight: 500;
+    font-size: 32px;
     margin-bottom: 30px;
-    color: #000;
   }
 
   .photo-grid {
@@ -121,39 +83,36 @@
     position: relative;
     overflow: hidden;
     aspect-ratio: 1 / 1;
-    background-color: #f5f5f5;
+    background-color: #eee;
   }
 
   .grid-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
   }
 
   /* Hotspot Pin Button */
   .hotspot-pin {
     position: absolute;
     transform: translate(-50%, -50%);
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.9);
     border: none;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    transition: transform 0.2s ease, background 0.2s ease;
-    z-index: 5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
   }
 
   .hotspot-pin:hover {
     transform: translate(-50%, -50%) scale(1.15);
-    background: #ffffff;
   }
 
   /* Modal Styling */
@@ -163,15 +122,14 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.25s ease, visibility 0.25s ease;
-    z-index: 99999;
-    font-family: 'Jost', sans-serif;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 9999;
   }
 
   .modal-overlay.active {
@@ -181,354 +139,40 @@
 
   .modal-box {
     background: #fff;
-    padding: 30px;
-    max-width: 400px;
+    padding: 24px;
+    max-width: 500px;
     width: 90%;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    box-sizing: border-box;
+    border-radius: 4px;
   }
 
   .modal-close-btn {
     position: absolute;
-    top: 12px;
-    right: 16px;
+    top: 10px;
+    right: 15px;
     background: none;
     border: none;
-    font-size: 22px;
-    line-height: 1;
+    font-size: 28px;
     cursor: pointer;
-    color: #000;
   }
 
-  .modal-top-content {
+  .modal-content {
     display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 20px;
+    align-items: center;
   }
 
   .modal-img {
-    width: 90px;
-    height: 110px;
+    width: 120px;
+    height: 120px;
     object-fit: cover;
-    flex-shrink: 0;
-  }
-
-  .modal-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .modal-title {
-    font-size: 15px;
-    font-weight: 500;
-    margin: 0 0 6px 0;
-    color: #000;
   }
 
   .modal-price {
-    font-size: 14px;
-    font-weight: 600;
-    margin: 0 0 8px 0;
-    color: #000;
-  }
-
-  .modal-desc {
-    font-size: 12px;
-    line-height: 1.35;
-    color: #666;
-    margin: 0;
-  }
-
-  /* Variant Switcher Design */
-  .variant-group {
-    margin-bottom: 16px;
-  }
-
-  .variant-label {
-    display: block;
-    font-size: 12px;
-    color: #555;
-    margin-bottom: 6px;
-  }
-
-  /* Radio Style for Color Buttons */
-  .color-options-grid {
-    display: flex;
-    border: 1px solid #000;
-  }
-
-  .color-option-btn {
-    flex: 1;
-    padding: 8px 0;
-    text-align: center;
-    background: #fff;
-    border: none;
-    border-right: 1px solid #000;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    color: #000;
-    transition: all 0.2s ease;
-  }
-
-  .color-option-btn:last-child {
-    border-right: none;
-  }
-
-  .color-option-btn.selected {
-    background: #000;
-    color: #fff;
-  }
-
-  /* Select Style for Size Dropdown */
-  .size-select-wrapper select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    background: #fff;
-    font-size: 13px;
-    font-family: inherit;
-    color: #333;
-    outline: none;
-    cursor: pointer;
-    border-radius: 0;
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-  }
-
-  /* ADD TO CART Button with Horizontal Scroll Effect */
-  .modal-add-btn {
-    position: relative;
-    width: 100%;
-    height: 46px;
-    background-color: #000000;
-    color: #FFFFFF;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-sizing: border-box;
-    border: none;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    overflow: hidden;
-    z-index: 1;
-    transition: color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    margin-top: 10px;
-  }
-
-  .modal-add-btn::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #FFEE4A;
-    z-index: -1;
-    transform: translateX(-101%);
-    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
-
-  .modal-add-btn:hover {
-    color: #000000;
-  }
-
-  .modal-add-btn:hover::before {
-    transform: translateX(0);
-  }
-
-  .modal-add-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+    font-weight: bold;
+    color: #111;
   }
 </style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const overlay = document.getElementById('hotspot-modal-overlay');
-    const closeBtn = document.getElementById('modal-close-trigger');
-    const modalImg = document.getElementById('modal-target-img');
-    const modalTitle = document.getElementById('modal-target-title');
-    const modalPrice = document.getElementById('modal-target-price');
-    const modalDesc = document.getElementById('modal-target-desc');
-    const variantsContainer = document.getElementById('modal-variants-container');
-    const variantIdInput = document.getElementById('modal-selected-variant-id');
-    const addForm = document.getElementById('hotspot-add-to-cart-form');
-    const submitBtn = document.getElementById('modal-submit-btn');
-
-    let currentProduct = null;
-    let selectedOptions = [];
-
-    // Open Modal and Populate Dynamic Data
-    document.querySelectorAll('.hotspot-pin').forEach(pin => {
-      pin.addEventListener('click', function(e) {
-        e.preventDefault();
-        const handle = this.getAttribute('data-product-handle');
-        const jsonScript = document.getElementById('ProductJson-' + handle);
-
-        if (!jsonScript) return;
-
-        currentProduct = JSON.parse(jsonScript.textContent);
-        selectedOptions = currentProduct.variants[0].options; // Default selection
-
-        // Render Static Info
-        modalImg.src = currentProduct.featured_image;
-        modalTitle.textContent = currentProduct.title;
-        modalPrice.textContent = currentProduct.price;
-        modalDesc.textContent = currentProduct.description;
-
-        // Render Options (Color buttons / Size dropdown)
-        renderVariantOptions();
-        updateSelectedVariant();
-
-        overlay.classList.add('active');
-        overlay.setAttribute('aria-hidden', 'false');
-      });
-    });
-
-    // Close Modal
-    function closeModal() {
-      overlay.classList.remove('active');
-      overlay.setAttribute('aria-hidden', 'true');
-    }
-
-    closeBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) closeModal();
-    });
-
-    // Build Dynamic Variant UI based on options (Color, Size, etc.)
-    function renderVariantOptions() {
-      variantsContainer.innerHTML = '';
-
-      currentProduct.options.forEach((opt, index) => {
-        const group = document.createElement('div');
-        group.className = 'variant-group';
-
-        const label = document.createElement('label');
-        label.className = 'variant-label';
-        label.textContent = opt.name;
-        group.appendChild(label);
-
-        // Render Color as horizontal button strip
-        if (opt.name.toLowerCase().includes('color') || opt.name.toLowerCase().includes('colour')) {
-          const grid = document.createElement('div');
-          grid.className = 'color-options-grid';
-
-          opt.values.forEach(val => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'color-option-btn' + (selectedOptions[index] === val ? ' selected' : '');
-            btn.textContent = val;
-
-            btn.addEventListener('click', function() {
-              grid.querySelectorAll('.color-option-btn').forEach(b => b.classList.remove('selected'));
-              btn.classList.add('selected');
-              selectedOptions[index] = val;
-              updateSelectedVariant();
-            });
-
-            grid.appendChild(btn);
-          });
-          group.appendChild(grid);
-        } else {
-          // Render Size or other options as Dropdown Select
-          const selectWrapper = document.createElement('div');
-          selectWrapper.className = 'size-select-wrapper';
-
-          const select = document.createElement('select');
-          
-          // Default placeholder option
-          const placeholder = document.createElement('option');
-          placeholder.value = '';
-          placeholder.textContent = 'Choose your ' + opt.name.toLowerCase();
-          select.appendChild(placeholder);
-
-          opt.values.forEach(val => {
-            const option = document.createElement('option');
-            option.value = val;
-            option.textContent = val;
-            if (selectedOptions[index] === val) option.selected = true;
-            select.appendChild(option);
-          });
-
-          select.addEventListener('change', function() {
-            selectedOptions[index] = this.value;
-            updateSelectedVariant();
-          });
-
-          selectWrapper.appendChild(select);
-          group.appendChild(selectWrapper);
-        }
-
-        variantsContainer.appendChild(group);
-      });
-    }
-
-    // Match Selected Options to Actual Variant ID
-    function updateSelectedVariant() {
-      const matchedVariant = currentProduct.variants.find(v => {
-        return v.options.every((optVal, idx) => optVal === selectedOptions[idx]);
-      });
-
-      if (matchedVariant && matchedVariant.available) {
-        variantIdInput.value = matchedVariant.id;
-        modalPrice.textContent = matchedVariant.price;
-        submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = 'ADD TO CART';
-      } else {
-        variantIdInput.value = '';
-        submitBtn.disabled = true;
-        submitBtn.querySelector('span').textContent = 'UNAVAILABLE';
-      }
-    }
-
-    // AJAX Form Add to Cart
-    addForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const variantId = variantIdInput.value;
-      if (!variantId) return;
-
-      submitBtn.disabled = true;
-      submitBtn.querySelector('span').textContent = 'ADDING...';
-
-      fetch('/cart/add.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          items: [{
-            id: variantId,
-            quantity: 1
-          }]
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        submitBtn.querySelector('span').textContent = 'ADDED!';
-        setTimeout(() => {
-          closeModal();
-          // Trigger Shopify standard cart drawer update if available
-          document.dispatchEvent(new CustomEvent('cart:refresh'));
-        }, 600);
-      })
-      .catch(err => {
-        console.error('Error adding to cart:', err);
-        submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = 'ADD TO CART';
-      });
-    });
-  });
-</script>
 
 {% schema %}
 {
@@ -539,58 +183,46 @@
       "id": "section_title",
       "label": "Heading",
       "default": "Tisso vision in the wild"
-    }
-  ],
-  "blocks": [
+    },
     {
-      "type": "grid_item",
-      "name": "Grid Product & Hotspot",
-      "settings": [
-        {
-          "type": "product",
-          "id": "product",
-          "label": "Select Product"
-        },
-        {
-          "type": "image_picker",
-          "id": "custom_image",
-          "label": "Custom Image (Optional)",
-          "info": "Overrides product image if set."
-        },
-        {
-          "type": "range",
-          "id": "hotspot_x",
-          "min": 5,
-          "max": 95,
-          "step": 1,
-          "unit": "%",
-          "label": "Hotspot Horizontal (X)",
-          "default": 50
-        },
-        {
-          "type": "range",
-          "id": "hotspot_y",
-          "min": 5,
-          "max": 95,
-          "step": 1,
-          "unit": "%",
-          "label": "Hotspot Vertical (Y)",
-          "default": 50
-        }
-      ]
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection (Optional)",
+      "info": "Leave blank to display all catalog products."
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 3,
+      "max": 12,
+      "step": 3,
+      "default": 6,
+      "label": "Products to display"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_x",
+      "min": 5,
+      "max": 95,
+      "step": 1,
+      "unit": "%",
+      "label": "Default Hotspot X Position",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "hotspot_y",
+      "min": 5,
+      "max": 95,
+      "step": 1,
+      "unit": "%",
+      "label": "Default Hotspot Y Position",
+      "default": 50
     }
   ],
   "presets": [
     {
-      "name": "Tisso Hotspot Grid",
-      "blocks": [
-        { "type": "grid_item" },
-        { "type": "grid_item" },
-        { "type": "grid_item" },
-        { "type": "grid_item" },
-        { "type": "grid_item" },
-        { "type": "grid_item" }
-      ]
+      "name": "Tisso Hotspot Grid"
     }
   ]
 }
